@@ -1,0 +1,191 @@
+{% extends "rental/base.html" %}
+{% load static %}
+
+{% block title %}Oprema za iznajmljivanje{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/oprema.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="main">
+
+    <div class="page-hero">
+
+        <div class="breadcrumb">
+            <a href="{% url 'home' %}">Početna</a> / Oprema
+        </div>
+
+        <h1>Oprema za iznajmljivanje</h1>
+        <p>
+            Iznajmi skije, snowboard, pancerice i svu prateću opremu unapred.
+        </p>
+
+    </div>
+
+
+    <div class="filters-bar">
+
+        <form method="get">
+
+            <div class="filters-grid">
+
+                <div>
+                    <label class="form-label">Ski centar</label>
+
+                    <select name="ski_center" class="form-select">
+
+                        <option value="">Svi centri</option>
+
+                        {% for center in ski_centers %}
+
+                            <option
+                                value="{{ center.id }}"
+                                {% if center.id == selected_center %}
+                                    selected
+                                {% endif %}>
+                                {{ center.business_profile.business_name }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                    <button
+                        type="submit"
+                        class="btn-search">
+
+                        Pretraži
+
+                    </button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <div class="list-wrap">
+
+        {% for rental in rentals %}
+
+       <div class="rental-header">
+
+            <div class="profile-logo-placeholder">
+                    {{ rental.business_profile.business_name|first|upper }}
+                </div>
+
+            <div>
+
+                <div class="rental-hname">
+
+                    {{ rental.business_profile.business_name }}
+
+                </div>
+
+                <div class="rental-hmeta">
+
+                    {% if rental.ski_center %}{{ rental.ski_center.business_profile.business_name }}{% endif %}
+
+                    ·
+
+                    ★ {{ rental.avg|floatformat:1|default:"0.0" }}
+
+                </div>
+
+            </div>
+
+            <a href="{% url 'rentalPublicProfile' rental.id %}" class="btn-outline">
+
+                Vidi profil
+
+            </a>
+
+        </div>
+
+
+
+        <div class="equip-grid">
+
+            {% for item in rental.equipment.all %}
+
+            <div class="equip-card">
+
+               <div class="equip-img">
+
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.model }}">
+                    {% else %}
+                        <div class="equip-image-placeholder">
+                            Nema slike
+                        </div>
+                    {% endif %}
+
+                </div>
+
+                <div class="equip-body">
+
+                    <div class="equip-name">
+
+                        {{ item.brand.name }} — {{ item.model }}
+
+                    </div>
+
+                    <div class="equip-meta">
+
+                        {{ item.category.name }}
+
+                    </div>
+
+                    <span class="tag">
+
+                        {{ item.category.name }}
+
+                    </span>
+
+                    <div class="equip-footer">
+
+                        <div class="equip-price">
+
+                            {{ item.price_per_day }} RSD/dan
+
+                        </div>
+
+                        <a href="{% url 'equipment_detail' item.id %}" class="btn-book">
+
+                            Rezerviši
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% empty %}
+
+        <div style="text-align:center;padding:80px;color:var(--text-muted);">
+
+            <h3>Trenutno nema dostupne opreme.</h3>
+
+            <p>Dodajte rental firmu ili pokušajte kasnije.</p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

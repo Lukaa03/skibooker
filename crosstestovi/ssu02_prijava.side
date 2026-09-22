@@ -1,0 +1,117 @@
+{
+  "id": "b2c3d4e5-0001-4000-8000-000000000010",
+  "version": "2.0",
+  "name": "SSU_02 Prijava",
+  "url": "http://127.0.0.1:8000",
+  "tests": [
+    {
+      "id": "b2c3d4e5-0002-4000-8000-000000000011",
+      "name": "Legalno - uspesna prijava",
+      "commands": [
+        {
+          "id": "e01",
+          "comment": "napomena: koristi postojeci aktivan nalog; admin se pravi migracijom",
+          "command": "open",
+          "target": "/accounts/login/",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e02",
+          "comment": "email",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='email']\");el.value='admin@skibooker.rs';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e03",
+          "comment": "lozinka",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='password']\");el.value='admin123';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e04",
+          "comment": "submit",
+          "command": "click",
+          "target": "css=button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "e05",
+          "comment": "posle uspeha redirect na home -> polje password vise ne postoji",
+          "command": "assertElementNotPresent",
+          "target": "name=password",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    },
+    {
+      "id": "b2c3d4e5-0003-4000-8000-000000000012",
+      "name": "Nelegalno - pogresna lozinka",
+      "commands": [
+        {
+          "id": "f01",
+          "comment": "",
+          "command": "open",
+          "target": "/accounts/login/",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f02",
+          "comment": "email",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='email']\");el.value='admin@skibooker.rs';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f03",
+          "comment": "pogresna lozinka",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='password']\");el.value='netacna999';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f04",
+          "comment": "submit",
+          "command": "click",
+          "target": "css=button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "f05",
+          "comment": "prijava pala -> ostaje na login, polje password i dalje postoji",
+          "command": "assertElementPresent",
+          "target": "name=password",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "b2c3d4e5-0004-4000-8000-000000000013",
+      "name": "SSU_02 Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "b2c3d4e5-0002-4000-8000-000000000011",
+        "b2c3d4e5-0003-4000-8000-000000000012"
+      ]
+    }
+  ],
+  "urls": [
+    "http://127.0.0.1:8000"
+  ],
+  "plugins": []
+}

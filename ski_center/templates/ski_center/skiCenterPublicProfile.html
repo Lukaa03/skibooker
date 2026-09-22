@@ -1,0 +1,298 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – {{ ski_center.business_profile.business_name }}{% endblock %}
+
+{% block extra_css %}
+<!-- Učitavanje tvog novog eksternog CSS fajla -->
+<link rel="stylesheet" href="{% static 'styles/skiCenterPublicProfile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="public-container">
+
+  <!-- Pozadinski slikovni Hero boks -->
+  <div class="public-hero"></div>
+
+  <!-- GLAVNI HEADER PROFILA -->
+  <div class="profile-top-public">
+    <img src="{% static 'images/kopaonik.jpg' %}" class="profile-logo" alt="Logo centra">
+
+    <div class="profile-info-block" style="flex:1">
+      <h1>{{ ski_center.business_profile.business_name }}</h1>
+      <div class="profile-meta-tags">
+        <span>{{ ski_center.business_profile.location }}</span>
+        {% if ski_center.contact_email %}<span>•</span><span>{{ ski_center.contact_email }}</span>{% endif %}
+      </div>
+
+      <div class="public-tag-row">
+        <span class="p-tag">{{ slopes_count }}km staza</span>
+        <span class="p-tag">{{ lifts_count }} žičara</span>
+        <span class="p-tag verified">✓ Verifikovan Centar</span>
+      </div>
+    </div>
+
+    <!-- Statističke kartice s desne strane -->
+    <div class="stats-wrapper">
+      <div class="stat-card-new">
+        <div class="s-val">{{ instructors_count }}</div>
+        <div class="s-label">Instruktori</div>
+      </div>
+      <div class="stat-card-new">
+        <div class="s-val">{{ rentals_count }}</div>
+        <div class="s-label">Rentali</div>
+      </div>
+        <div class="stat-card-new">
+            <div class="s-val">{{ slopes.count }}</div>
+            <div class="s-label">Staze</div>
+        </div>
+        <div class="stat-card-new rating-box">
+            <div class="s-val">{{ avg_rating|floatformat:1|default:"N/A" }}</div>
+            <div class="s-label">★ Ocena</div>
+        </div>
+    </div>
+  </div>
+
+  <!-- MODERNA NAVIGACIJA KROZ PROFIL (TABOVI) -->
+  <div class="modern-tabs">
+    <button class="m-tab-btn active" onclick="switchTab(this,'pregled')">O centru & Status</button>
+    <button class="m-tab-btn" onclick="switchTab(this,'staze')">Sve staze i žičare</button>
+    <button class="m-tab-btn" onclick="switchTab(this,'instruktori')">Škola skijanja (Instruktori)</button>
+    <button class="m-tab-btn" onclick="switchTab(this,'rental')">Iznajmljivanje opreme (Rental)</button>
+    <button class="m-tab-btn" onclick="switchTab(this,'ocene')">Ocene i recenzije</button>
+  </div>
+
+  <!-- SADRŽAJ TABOVA -->
+
+  <!-- TAB 1: PREGLED -->
+  <div id="tab-pregled">
+    <div class="grid-layout">
+
+      <!-- Kartica o Centru -->
+      <div class="info-card">
+        <div class="card-heading">O ski centru</div>
+        <p style="font-size:0.98rem; line-height:1.6; color:#334155; margin-bottom:24px;">
+          {% if ski_center.description %}
+            {{ ski_center.description }}
+          {% else %}
+            Dobrodošli u {{ ski_center.business_profile.business_name }}. Uživajte u savršenim stazama i vrhunskim ski školama.
+          {% endif %}
+        </p>
+
+        <div class="card-heading" style="margin-top:32px;">Kontakt i informacije</div>
+        <div class="info-box-gray">
+          <div class="info-list-item">
+            <span class="info-label">Lokacija:</span>
+            <span class="info-value">{{ ski_center.business_profile.location }}</span>
+          </div>
+          <div class="info-list-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ ski_center.contact_email }}</span>
+          </div>
+          <div class="info-list-item">
+            <span class="info-label">Telefon:</span>
+            <span class="info-value">{{ ski_center.contact_phone }}</span>
+          </div>
+          <div class="info-list-item">
+            <span class="info-label">Sajt:</span>
+            <span class="info-value"><a href="{{ ski_center.website }}" target="_blank">{{ ski_center.website }}</a></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartica uživo stanja -->
+      <div class="info-card">
+        <div class="card-heading">Stanje na stazama (uživo)</div>
+        <p style="font-size:0.88rem; color:#64748b; margin-bottom:16px;">Trenutni presek prohodnosti skijališta.</p>
+
+        {% for slope in slopes %}
+        <div class="live-slope-row">
+          <div>
+            <span style="font-weight:700; color:#0f172a; font-size:0.95rem;">{{ slope.name }}</span>
+            <span style="font-size:0.8rem; color:#64748b; margin-left:6px;">({{ slope.get_difficulty_display }} · {{ slope.length_km }}km)</span>
+          </div>
+          {% if slope.status == 'otvorena' %}
+            <span class="badge-open">Otvorena</span>
+          {% else %}
+            <span class="badge-closed">Zatvorena</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p style="color:#64748b; font-size:0.9rem; text-align:center; padding:20px;">Trenutno nema podataka o prohodnosti staza.</p>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 2: STAZE I ŽIČARE -->
+  <div id="tab-staze" style="display:none">
+    <div class="grid-layout">
+
+      <!-- Skijaške staze -->
+      <div class="info-card">
+        <div class="card-heading">Skijaške staze</div>
+        {% for slope in slopes %}
+        <div class="live-slope-row">
+          <div>
+            <div style="font-weight:700; color:#0f172a;">{{ slope.name }}</div>
+            <div style="font-size:0.8rem; color:#64748b;">Težina: {{ slope.get_difficulty_display }} | Dužina: {{ slope.length_km }} km</div>
+          </div>
+          {% if slope.status == 'otvorena' %}
+            <span class="badge-open">Otvorena</span>
+          {% else %}
+            <span class="badge-closed">Zatvorena</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p style="color:#64748b;">Nema registrovanih staza.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Žičare i ski liftovi -->
+      <div class="info-card">
+        <div class="card-heading">Žičare i ski liftovi</div>
+        {% for lift in lifts %}
+        <div class="live-slope-row">
+          <div>
+            <div style="font-weight:700; color:#0f172a;">{{ lift.name }}</div>
+            <div style="font-size:0.8rem; color:#64748b;">Tip: Žičara / Instalacija</div>
+          </div>
+          {% if lift.status == 'aktivna' %}
+            <span class="badge-open">U funkciji</span>
+          {% else %}
+            <span class="badge-closed">Van funkcije</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p style="color:#64748b;">Nema registrovanih žičara ili liftova.</p>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 3: INSTRUKTORI -->
+  <div id="tab-instruktori" style="display:none">
+    <div class="info-card">
+      <div class="card-heading">Dostupni ski instruktori u ovom centru</div>
+      <div class="instructors-grid">
+        {% for instructor in instructors %}
+        <div class="instructor-mini-card">
+          <div>
+            <div style="font-weight:700; color:#0f172a; font-size:1.05rem;">
+              {{ instructor.business_profile.user.first_name }} {{ instructor.business_profile.user.last_name }}
+            </div>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+              <span style="color:#f59e0b;">★ {{ instructor.avg_rating|floatformat:1|default:"N/A" }}</span> · <b style="color:#0f172a;">{{ instructor.price_per_hour }} RSD</b> / čas
+            </div>
+          </div>
+          <a href="{% url 'instructor_public_profile' instructor.pk %}" class="btn-book">Zakaži</a>
+        </div>
+        {% empty %}
+        <p style="color:#64748b; grid-column: 1/-1; text-align: center; padding: 20px;">Trenutno nema prijavljenih instruktora za ovaj centar.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+    <!-- TAB 4: RENTAL -->
+    <div id="tab-rental" style="display:none">
+      <div class="info-card">
+        <div class="card-heading">Rental firme u centru</div>
+        <div class="instructors-grid">
+          {% for rental in rentals %}
+          <div class="instructor-mini-card">
+            <div>
+              <div style="font-weight:700; color:#0f172a; font-size:1.05rem;">{{ rental.business_profile.business_name }}</div>
+              <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">Iznajmljivanje opreme</div>
+            </div>
+            <a href="{% url 'rentalPublicProfile' rental.pk %}" class="btn-book">Pogledaj profil</a>
+          </div>
+          {% empty %}
+          <p style="color:#64748b; grid-column: 1/-1; text-align: center; padding: 20px;">Trenutno nema rental firmi u ovom centru.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: OCENE -->
+    <div id="tab-ocene" style="display:none">
+      <div class="info-card">
+        <div class="card-heading">Ocene i recenzije · ★ {{ avg_rating|floatformat:1|default:"N/A" }}</div>
+        {% if user.is_authenticated and not user_business_type %}
+          <button type="button" class="btn-book" style="margin-bottom:16px;" onclick="openReviewModal()">Ostavi recenziju</button>
+        {% endif %}
+        {% for review in reviews %}
+        <div class="live-slope-row" style="flex-direction:column; align-items:flex-start;">
+          <div style="display:flex; align-items:center; gap:10px; width:100%;">
+            <span style="font-weight:700; color:#0f172a;">{{ review.reviewer.user.get_full_name }}</span>
+            <span style="color:#f59e0b;">{% for i in review.stars_range %}★{% endfor %}</span>
+            <span style="font-size:0.8rem; color:#64748b; margin-left:auto;">{{ review.created_at|date:"d. M Y." }}</span>
+          </div>
+          <p style="font-size:0.9rem; color:#334155; margin-top:6px;">{{ review.comment }}</p>
+        </div>
+        {% empty %}
+        <p style="color:#64748b;">Još nema ocena za ovaj centar.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+</div>
+
+<div id="modal-review" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:440px;max-width:90%;">
+    <h3 style="font-weight:700;margin-bottom:20px;">Ostavi recenziju</h3>
+    <form method="POST" action="{% url 'submit_ski_center_review' ski_center.pk %}">
+      {% csrf_token %}
+      <div style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Ocena</label>
+        <div id="star-rating" style="font-size:1.9rem;color:#ddd;cursor:pointer;user-select:none;">
+          <span data-value="1">★</span><span data-value="2">★</span><span data-value="3">★</span><span data-value="4">★</span><span data-value="5">★</span>
+        </div>
+        <input type="hidden" name="rating" id="rating-input">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;margin-bottom:6px;font-weight:600;">Komentar (opciono)</label>
+        <textarea name="comment" rows="3" style="width:100%;resize:vertical;padding:8px;border:1px solid #ddd;border-radius:8px;"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn-book">Pošalji</button>
+        <button type="button" class="btn-book" style="background:#e2e8f0;color:#0f172a;" onclick="document.getElementById('modal-review').style.display='none'">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(btn, tabId) {
+  // 1. Skidamo .active klasu sa svih tab dugmića
+  document.querySelectorAll('.m-tab-btn').forEach(b => b.classList.remove('active'));
+
+  // 2. Dodajemo .active klasu na trenutno kliknuto dugme
+  btn.classList.add('active');
+
+  // 3. Sakrivamo sve tab kontejnere
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+
+  // 4. Prikazujemo izabrani tab
+  var currentTab = document.getElementById('tab-' + tabId);
+  if (currentTab) {
+    currentTab.style.display = 'block';
+  }
+}
+
+function openReviewModal(){
+  document.getElementById('modal-review').style.display = 'flex';
+}
+const stars = document.querySelectorAll('#star-rating span');
+function paintStars(val){ stars.forEach(s => s.style.color = (Number(s.dataset.value) <= val) ? '#f59e0b' : '#ddd'); }
+stars.forEach(star => {
+  star.addEventListener('mouseover', () => paintStars(Number(star.dataset.value)));
+  star.addEventListener('click', () => { document.getElementById('rating-input').value = star.dataset.value; paintStars(Number(star.dataset.value)); });
+});
+document.getElementById('star-rating').addEventListener('mouseleave', () => paintStars(Number(document.getElementById('rating-input').value) || 0));
+</script>
+{% endblock %}

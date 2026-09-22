@@ -1,0 +1,293 @@
+{% extends "rental/base.html" %}
+{% load static %}
+
+{% block title %}Detalj opreme{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/equipment_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="main">
+
+    <!-- HERO -->
+
+    <div class="page-hero">
+
+        <div class="breadcrumb">
+            <a href="{% url 'home' %}">Početna</a> /
+            <a href="{% url 'rental_list' %}">Oprema</a> /
+            {{ equipment.brand.name }} {{ equipment.model }}
+        </div>
+
+        <h1>{{ equipment.category.name }} — {{ equipment.brand.name }} {{ equipment.model }}</h1>
+
+        <p>
+            {{ equipment.rental.business_profile.business_name }}
+            ·
+            {{ equipment.rental.ski_center }}
+            ·
+            <span class="stars">★ {{ equipment.rental.average_rating }}</span>
+        </p>
+
+    </div>
+
+
+    <!-- CONTENT -->
+
+    <div class="content-grid">
+
+
+        <!-- LEVA STRANA -->
+
+        <div>
+
+            <div class="card-box">
+
+                {% if equipment.image %}
+                    <img src="{{ equipment.image.url }}"
+                         class="main-image"
+                         alt="{{ equipment.model }}">
+                {% else %}
+                    <img src="{% static 'images/no-image.png' %}"
+                         class="main-image"
+                         alt="Nema slike">
+                {% endif %}
+
+                <h2 class="section-title">O opremi</h2>
+
+                <p class="equipment-description">
+                    {{ equipment.description }}
+                </p>
+
+                <ul class="info-list">
+
+                    <li>
+                        <span class="info-key">Tip opreme</span>
+                        <span>{{ equipment.category.name }}</span>
+                    </li>
+
+                    <li>
+                        <span class="info-key">Brend</span>
+                        <span>{{ equipment.brand.name }}</span>
+                    </li>
+
+                    <li>
+                        <span class="info-key">Model</span>
+                        <span>{{ equipment.model }}</span>
+                    </li>
+
+                    <li>
+                        <span class="info-key">Rental firma</span>
+                        <span>{{ equipment.rental.business_profile.business_name }}</span>
+                    </li>
+
+                    <li>
+                        <span class="info-key">Ski centar</span>
+                        <span>{{ equipment.rental.ski_center }}</span>
+                    </li>
+
+                    <li>
+                        <span class="info-key">Status</span>
+
+                        {% if equipment.is_active %}
+                            <span class="status available">
+                                Dostupno
+                            </span>
+                        {% else %}
+                            <span class="status unavailable">
+                                Nedostupno
+                            </span>
+                        {% endif %}
+                    </li>
+
+                </ul>
+
+            </div>
+
+
+
+            <!-- RECENZIJE -->
+
+            <div class="card-box">
+
+                <h2 class="section-title">Recenzije</h2>
+
+                {% for review in equipment.reviews.all %}
+
+                <div class="review">
+
+                    <div class="review-header">
+
+                        <div class="review-avatar">
+                            {{ review.user.first_name|first }}{{ review.user.last_name|first }}
+                        </div>
+
+                        <div>
+
+                            <div class="review-name">
+                                {{ review.user.get_full_name }}
+                            </div>
+
+                            <div class="stars">
+                                ★★★★★
+                            </div>
+
+                        </div>
+
+                        <div class="review-date">
+                            {{ review.created_at|date:"d.m.Y." }}
+                        </div>
+
+                    </div>
+
+                    <p class="review-text">
+                        {{ review.comment }}
+                    </p>
+
+                </div>
+
+                {% empty %}
+
+                <div class="empty-state">
+                    Još nema recenzija za ovu opremu.
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+
+        <!-- DESNA STRANA -->
+
+        <div>
+
+            <div class="booking-card">
+
+                <div class="price-row">
+
+                    <span class="price-big">
+                        {{ equipment.price_per_day }} RSD
+                    </span>
+
+                    <span class="price-sub">
+                        / dan
+                    </span>
+
+                </div>
+
+                <p class="booking-note">
+                    Cena iznajmljivanja po danu.
+                </p>
+
+               <form method="POST" action="{% url 'reserve_equipment' equipment.pk %}">
+
+                    {% csrf_token %}
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Veličina
+                        </label>
+
+                        {{ form.equipment_variant }}
+
+                        {% if form.equipment_variant.errors %}
+                            <div class="form-error">
+                                {{ form.equipment_variant.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Količina
+                        </label>
+
+                        {{ form.quantity }}
+
+                        {% if form.quantity.errors %}
+                            <div class="form-error">
+                                {{ form.quantity.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Datum preuzimanja
+                        </label>
+
+                        {{ form.start_date }}
+
+                        {% if form.start_date.errors %}
+                            <div class="form-error">
+                                {{ form.start_date.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="form-label">
+                            Datum vraćanja
+                        </label>
+
+                        {{ form.end_date }}
+
+                        {% if form.end_date.errors %}
+                            <div class="form-error">
+                                {{ form.end_date.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="booking-summary">
+
+                        <div class="summary-row">
+                            <span>Ukupna cena</span>
+                            <strong>Izračunava se nakon izbora datuma</strong>
+                        </div>
+
+                    </div>
+
+                    <button
+                            type="submit"
+                            class="btn-book booking-btn">
+
+                        Rezerviši opremu
+
+                    </button>
+                   {% if reservation_error %}
+                        <p class="booking-error">
+                            {{ reservation_error }}
+                        </p>
+                    {% endif %}
+
+                    {% if not user.is_authenticated %}
+                        <p class="booking-error">
+                            Moraš biti prijavljen da bi rezervisao opremu.
+                        </p>
+                    {% endif %}
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

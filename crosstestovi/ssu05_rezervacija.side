@@ -1,0 +1,39 @@
+{
+  "id": "c5d6e7f8-0001-4000-8000-000000000050",
+  "version": "2.0",
+  "name": "SSU_05 Rezervacija casa",
+  "url": "http://127.0.0.1:8000",
+  "tests": [
+    {
+      "id": "c5d6e7f8-0002-4000-8000-000000000051",
+      "name": "Legalno - lista instruktora dostupna",
+      "commands": [
+        { "id": "t01", "comment": "PREDUSLOV: seed_ssu05.py (instruktor Marko Skijic)", "command": "open", "target": "/instructor/", "targets": [], "value": "" },
+        { "id": "t02", "comment": "u listi se vidi seed instruktor (preduslov za rezervaciju)", "command": "assertElementPresent", "target": "xpath=//*[contains(text(),'Skijic')]", "targets": [], "value": "" }
+      ]
+    },
+    {
+      "id": "c5d6e7f8-0003-4000-8000-000000000052",
+      "name": "Nelegalno - neulogovan pokusaj rezervacije",
+      "commands": [
+        { "id": "u01", "comment": "gost direktno gadja endpoint za rezervaciju termina (login_required)", "command": "open", "target": "/slot/1/book/", "targets": [], "value": "" },
+        { "id": "u02", "comment": "preusmeren na prijavu -> vidi se polje za email", "command": "assertElementPresent", "target": "name=email", "targets": [], "value": "" }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "c5d6e7f8-0004-4000-8000-000000000053",
+      "name": "SSU_05 Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "c5d6e7f8-0002-4000-8000-000000000051",
+        "c5d6e7f8-0003-4000-8000-000000000052"
+      ]
+    }
+  ],
+  "urls": ["http://127.0.0.1:8000"],
+  "plugins": []
+}

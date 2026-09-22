@@ -1,0 +1,334 @@
+/* SkiBooker — Equipment detail */
+
+.main {
+    display: block;
+    padding: 68px 0 0;
+}
+
+/* ==========================================================
+   HERO
+   ========================================================== */
+
+.page-hero {
+    background: var(--navy);
+    padding: 52px 52px 48px;
+    color: var(--white);
+}
+
+.breadcrumb {
+    margin-bottom: 10px;
+    font-size: .8rem;
+    color: rgba(255,255,255,.45);
+}
+
+.breadcrumb a {
+    color: rgba(255,255,255,.45);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--white);
+}
+
+.page-hero h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.page-hero p {
+    color: rgba(255,255,255,.6);
+    font-size: .95rem;
+}
+
+.stars {
+    color: var(--gold);
+    font-weight: 600;
+}
+
+/* ==========================================================
+   CONTENT
+   ========================================================== */
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 28px;
+    padding: 40px 52px 60px;
+}
+
+.card-box {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+/* ==========================================================
+   IMAGE
+   ========================================================== */
+
+.main-image{
+    width:100%;
+    height:420px;
+    object-fit:cover;
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    margin-bottom:22px;
+}
+
+/* ==========================================================
+   DESCRIPTION
+   ========================================================== */
+
+.equipment-description {
+    color: var(--text-muted);
+    line-height: 1.8;
+    font-size: .92rem;
+    margin-bottom: 24px;
+}
+
+/* ==========================================================
+   INFO
+   ========================================================== */
+
+.info-list {
+    list-style: none;
+}
+
+.info-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .9rem;
+}
+
+.info-list li:last-child {
+    border-bottom: none;
+}
+
+.info-key{
+    width:150px;
+    flex-shrink:0;
+    color:var(--text-muted);
+}
+
+.status {
+    font-weight: 600;
+}
+
+.available {
+    color: #16a34a;
+}
+
+.unavailable {
+    color: #dc2626;
+}
+
+/* ==========================================================
+   REVIEW
+   ========================================================== */
+
+.review {
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.review:last-child {
+    border-bottom: none;
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.review-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#4a9eff,#1a73e8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+}
+
+.review-name {
+    font-weight: 600;
+    font-size: .9rem;
+}
+
+.review-date {
+    margin-left: auto;
+    font-size: .78rem;
+    color: var(--text-muted);
+}
+
+.review-text {
+    color: var(--text-muted);
+    line-height: 1.7;
+    font-size: .88rem;
+}
+
+.empty-state {
+    padding: 30px 0;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* ==========================================================
+   BOOKING CARD
+   ========================================================== */
+
+.booking-card {
+    position: sticky;
+    top: 120px;
+
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+
+    padding: 24px;
+
+    box-shadow: var(--shadow);
+}
+
+.price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.price-big {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--navy);
+}
+
+.price-sub {
+    color: var(--text-muted);
+    font-size: .85rem;
+}
+
+.booking-note{
+    padding-bottom:18px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:20px;
+}
+.booking-error {
+    margin-top: 12px;
+
+    text-align: center;
+
+    color: #dc2626;
+
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    line-height: 1.4;
+}
+
+.booking-summary {
+    margin: 22px 0;
+    padding: 16px;
+    background: var(--off-white);
+    border-radius: var(--radius-sm);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .88rem;
+}
+
+.booking-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px 18px;
+
+    background: var(--navy);
+    color: var(--white);
+
+    border: none;
+    border-radius: var(--radius-sm);
+
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.booking-btn:hover {
+    background: var(--navy-mid);
+}
+.booking-btn:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+}
+
+.login-note {
+    margin-top: 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: .8rem;
+}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 1000px) {
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-card {
+        position: static;
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .page-hero,
+    .content-grid {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .page-hero h1 {
+        font-size: 1.7rem;
+    }
+
+    .main-image {
+        height: 220px;
+    }
+
+    .info-list li {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+}

@@ -1,0 +1,44 @@
+/* SkiBooker — Login page styles */
+
+.forgot {
+    display: block;
+    text-align: right;
+    font-size: 0.82rem;
+    color: var(--blue);
+    text-decoration: none;
+    margin-top: 6px;
+}
+
+.forgot:hover {
+    text-decoration: underline;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.error-msg {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+}
+.main {
+    display: block;
+    padding: 68px 0 0;
+}

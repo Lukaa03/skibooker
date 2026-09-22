@@ -1,0 +1,42 @@
+{
+  "id": "d7e8f9a0-0001-4000-8000-000000000070",
+  "version": "2.0",
+  "name": "SSU_07 Pregled rezervacija",
+  "url": "http://127.0.0.1:8000",
+  "tests": [
+    {
+      "id": "d7e8f9a0-0002-4000-8000-000000000071",
+      "name": "Nelegalno - neulogovan pristup profilu",
+      "commands": [
+        { "id": "p01", "comment": "gost otvara klijentski profil", "command": "open", "target": "/klijent/profil/", "targets": [], "value": "" },
+        { "id": "p02", "comment": "preusmeren na prijavu -> vidi se polje za email", "command": "assertElementPresent", "target": "name=email", "targets": [], "value": "" }
+      ]
+    },
+    {
+      "id": "d7e8f9a0-0003-4000-8000-000000000072",
+      "name": "Scenario - prazan pregled (svez klijent bez rezervacija)",
+      "commands": [
+        { "id": "q01", "comment": "otvori registraciju", "command": "open", "target": "/register/", "targets": [], "value": "" },
+        { "id": "q02", "comment": "popuni SVEZ klijentski nalog (jedinstven email) i posalji formu u jednom koraku", "command": "executeScript", "target": "document.querySelector(\"[name='first_name']\").value='Prazan';document.querySelector(\"[name='last_name']\").value='Klijent';var em=document.querySelector(\"[name='email']\");em.value='prazan_'+Date.now()+'@test.rs';document.querySelector(\"[name='password']\").value='lozinka123';document.querySelector(\"[name='confirm_password']\").value='lozinka123';em.form.submit();", "targets": [], "value": "" },
+        { "id": "q03", "comment": "sacekaj redirect posle registracije (automatski uloguje)", "command": "pause", "target": "2000", "value": "" },
+        { "id": "q04", "comment": "otvori profil", "command": "open", "target": "/klijent/profil/", "targets": [], "value": "" },
+        { "id": "q05", "comment": "prikazuje se poruka o praznom pregledu", "command": "assertElementPresent", "target": "xpath=//*[contains(text(),'Nemate nijednu')]", "targets": [], "value": "" }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "d7e8f9a0-0004-4000-8000-000000000073",
+      "name": "SSU_07 Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "d7e8f9a0-0002-4000-8000-000000000071",
+        "d7e8f9a0-0003-4000-8000-000000000072"
+      ]
+    }
+  ],
+  "urls": ["http://127.0.0.1:8000"],
+  "plugins": []
+}

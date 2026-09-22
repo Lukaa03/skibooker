@@ -1,0 +1,371 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Moj profil – Instruktor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/instructorProfile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <!-- HEADER PROFILA -->
+  <div class="page-header">
+    <div class="profile-top">
+      {% if instructor.photo %}
+        <img src="{{ instructor.photo.url }}" class="profile-photo" alt="{{ instructor.business_profile.user.get_full_name }}">
+      {% else %}
+        <div class="profile-photo" style="background:linear-gradient(135deg,#4a9eff,#1a73e8);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:1.5rem;color:white;">
+          {{ instructor.business_profile.user.first_name|first }}{{ instructor.business_profile.user.last_name|first }}
+        </div>
+      {% endif %}
+
+      <div style="flex:1">
+        <div class="profile-name">{{ instructor.business_profile.user.get_full_name }}</div>
+        <div class="profile-meta">
+          Instruktor · {{ instructor.business_profile.location }}
+          {% if instructor.ski_center %} · {{ instructor.ski_center.business_profile.business_name }}{% endif %}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;margin-bottom:12px;">
+          {% if instructor.specialization %}<span class="tag">🎿 {{ instructor.specialization }}</span>{% endif %}
+          <span class="tag">⭐ {{ avg_rating|default:"N/A" }}</span>
+          <span class="tag">✓ Odobren</span>
+        </div>
+        <button class="btn-outline-sm" onclick="switchTab(document.querySelector('.tab-btn:nth-child(4)'), 'profil')">
+          Izmeni profil
+        </button>
+      </div>
+
+      <div class="grid-4" style="min-width:400px;">
+        <div class="stat-card">
+          <div><div class="stat-label">Rezervacije</div><div class="stat-val">{{ bookings_count }}</div><div class="stat-sub">Ove sezone</div></div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label">Ocena</div><div class="stat-val">{{ avg_rating|default:"—" }}</div><div class="stat-sub">recenzija</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✓</div>
+          <div><div class="stat-label">Realizovano</div><div class="stat-val">{{ completed_count }}</div><div class="stat-sub">Ove sezone</div></div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label">Na čekanju</div><div class="stat-val">{{ pending_count }}</div><div class="stat-sub">Zahteva</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SADRŽAJ -->
+  <div class="content-wrap">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab(this,'rezervacije')">Rezervacije</button>
+      <button class="tab-btn" onclick="switchTab(this,'termini')">Moji termini</button>
+      <button class="tab-btn" onclick="switchTab(this,'ocene')">Ocene</button>
+      <button class="tab-btn" onclick="switchTab(this,'profil')">Podaci profila</button>
+    </div>
+
+    <!-- TAB: REZERVACIJE -->
+    <div id="tab-rezervacije">
+      <div class="section-title">Zahtevi za časove</div>
+        <div class="filter-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          <a href="?status=" class="btn-outline-sm {% if not status_filter %}active{% endif %}">Svi ({{ bookings_count }})</a>
+          <a href="?status=ceka_potvrdu" class="btn-outline-sm {% if status_filter == 'ceka_potvrdu' %}active{% endif %}">Na čekanju ({{ pending_count }})</a>
+          <a href="?status=potvrdjena" class="btn-outline-sm {% if status_filter == 'potvrdjena' %}active{% endif %}">Prihvaćeni ({{ confirmed_count }})</a>
+          <a href="?status=odbijena" class="btn-outline-sm {% if status_filter == 'odbijena' %}active{% endif %}">Odbijeni ({{ rejected_count }})</a>
+          <a href="?status=realizovana" class="btn-outline-sm {% if status_filter == 'realizovana' %}active{% endif %}">Realizovani ({{ completed_count }})</a>
+        </div>
+      {% for booking in bookings %}
+      <div class="rez-item">
+        <div class="rez-top">
+          <div class="rez-avatar" style="background:linear-gradient(135deg,#4a9eff,#1a73e8);">
+            {{ booking.client.user.first_name|first }}{{ booking.client.user.last_name|first }}
+          </div>
+          <div class="rez-info">
+            <div class="rez-name">
+              {{ booking.client.user.get_full_name }}
+              <span class="badge badge-cas">Čas</span>
+            </div>
+            <div class="rez-date">
+              {{ booking.time_slot.date }} · {{ booking.time_slot.start_time }} – {{ booking.time_slot.end_time }}
+            </div>
+          </div>
+          {% if booking.status == 'ceka_potvrdu' %}
+            <span class="badge badge-pending">Na čekanju</span>
+          {% elif booking.status == 'potvrdjena' %}
+            <span class="badge badge-confirmed">Potvrđeno</span>
+          {% elif booking.status == 'realizovana' %}
+            <span class="badge badge-done">Realizovano</span>
+          {% elif booking.status == 'odbijena' %}
+            <span class="badge badge-cancelled">Odbijeno</span>
+          {% elif booking.status == 'otkazana' %}
+            <span class="badge badge-cancelled">Otkazano</span>
+          {% endif %}
+        </div>
+          {% if booking.status == 'odbijena' and booking.reject_reason %}
+            <div style="font-size:0.8rem;color:var(--text-muted);margin:4px 0 0 60px;">
+                Razlog odbijanja: {{ booking.reject_reason }}
+            </div>
+          {% endif %}
+        <div class="rez-bottom">
+          <span style="font-size:0.82rem;color:var(--text-muted);">Cena: {{ instructor.price_per_hour }} RSD</span>
+          <div class="rez-actions">
+            {% if booking.status == 'ceka_potvrdu' %}
+              <form method="POST" action="{% url 'accept_booking' booking.pk %}">{% csrf_token %}
+                <button type="submit" class="btn-green">Prihvati</button>
+              </form>
+              <button type="button" class="btn-red" onclick="openRejectModal({{ booking.pk }})">Odbij</button>
+            {% elif booking.status == 'potvrdjena' %}
+              <form method="POST" action="{% url 'complete_booking' booking.pk %}">{% csrf_token %}
+                <button type="submit" class="btn-primary" style="padding:9px 16px;font-size:0.82rem;">Označi kao realizovano</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Nema rezervacija.</p>
+      {% endfor %}
+    </div>
+
+    <!-- TAB: SLOBODNI TERMINI -->
+    <div id="tab-termini" style="display:none">
+      <div class="section-title">Moji termini</div>
+      <div class="card-box">
+        <p style="font-size:0.88rem;color:var(--text-muted);margin-bottom:16px;">Dodaj datume i termine kada si dostupan za časove.</p>
+        <form method="POST" action="{% url 'add_time_slot' instructor.pk %}">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin-bottom:14px;">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Datum</label>
+              <input type="date" name="date" class="form-input" required>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Početak</label>
+              <input type="time" name="start_time" class="form-input" required>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Trajanje</label>
+              <select name="duration" class="form-select">
+                <option value="60">1 sat</option>
+                <option value="90">1.5 sat</option>
+                <option value="120">2 sata</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-blue">Dodaj</button>
+          </div>
+        </form>
+        <hr class="divider">
+        <div class="section-title" style="margin-bottom:10px;">Postojeći termini</div>
+        {% for slot in time_slots %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.88rem;">
+          <span>{{ slot.date }} · {{ slot.start_time }} – {{ slot.end_time }}</span>
+          {% if slot.is_booked %}
+            <span class="badge badge-confirmed">Rezervisan</span>
+          {% else %}
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="badge badge-pending">Slobodan</span>
+              <button type="button" class="btn-outline-sm" onclick="openEditModal({{ slot.pk }}, '{{ slot.date }}', '{{ slot.start_time|slice:':5' }}')">Izmeni</button>
+              <form method="POST" action="{% url 'delete_time_slot' slot.pk %}"
+                    onsubmit="return confirm('Da li ste sigurni da želite da obrišete ovaj termin?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-outline-sm" style="color:var(--red);border-color:var(--red);">Obriši</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted);font-size:0.88rem;">Nema unetih termina.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- TAB: OCENE -->
+    <div id="tab-ocene" style="display:none">
+      <div class="section-title">Ocene korisnika · <span class="stars">★ {{ avg_rating|default:"N/A" }}</span></div>
+      <div class="card-box">
+        {% for review in reviews %}
+        <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div class="rez-avatar" style="width:36px;height:36px;font-size:0.8rem;background:linear-gradient(135deg,#4a9eff,#1a73e8);">
+              {{ review.reviewer.user.first_name|first }}{{ review.reviewer.user.last_name|first }}
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:0.88rem;">{{ review.reviewer.user.get_full_name }}</div>
+              <div style="color:var(--gold);font-size:0.78rem;">{% for i in review.stars_range %}★{% endfor %}</div>
+            </div>
+            <span style="font-size:0.78rem;color:var(--text-muted);margin-left:auto;">{{ review.created_at|date:"d. M Y." }}</span>
+          </div>
+          <p style="font-size:0.86rem;color:var(--text-muted);">{{ review.comment }}</p>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted);">Nema ocena.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- TAB: PODACI PROFILA -->
+    <div id="tab-profil" style="display:none">
+      <div class="section-title">Podaci javnog profila</div>
+      <div class="card-box">
+        <form method="POST" action="{% url 'update_instructor' instructor.pk %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Ime</label>
+              <input class="form-input" name="first_name" value="{{ instructor.business_profile.user.first_name }}">
+                {% if form_errors.price_per_hour %}
+                  <span style="color:var(--red);font-size:0.78rem;">{{ form_errors.price_per_hour.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Prezime</label>
+              <input class="form-input" name="last_name" value="{{ instructor.business_profile.user.last_name }}">
+                {% if form_errors.price_per_hour %}
+                  <span style="color:var(--red);font-size:0.78rem;">{{ form_errors.price_per_hour.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Specijalizacija</label>
+              <select class="form-select" name="specialization">
+                <option value="freeride" {% if instructor.specialization == 'freeride' %}selected{% endif %}>Freeride</option>
+                <option value="pocetnici" {% if instructor.specialization == 'pocetnici' %}selected{% endif %}>Početnička nastava</option>
+                <option value="snowboard" {% if instructor.specialization == 'snowboard' %}selected{% endif %} >Snowboard</option>
+                <option value="napredna" {% if instructor.specialization == 'napredna' %}selected{% endif %}>Napredna tehnika</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ski škola</label>
+              <select class="form-select" name="ski_school">
+                <option value="">— Nijedna —</option>
+                {% for skola in ski_schools %}
+                <option value="{{ skola.pk }}" {% if instructor.ski_school_id == skola.pk %}selected{% endif %}>{{ skola.business_profile.business_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ski centar</label>
+              <select class="form-select" name="ski_center">
+                <option value="">-- Bez ski centra --</option>
+                {% for sc in ski_centri %}
+                  <option value="{{ sc.pk }}"
+                    {% if instructor.ski_center_id == sc.pk %}selected{% endif %}>
+                    {{ sc.business_profile.business_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cena časa (RSD)</label>
+              <input class="form-input" type="number" name="price_per_hour" value="{{ instructor.price_per_hour }}" min="0">
+                {% if form_errors.price_per_hour %}
+                  <span style="color:var(--red);font-size:0.78rem;">{{ form_errors.price_per_hour.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Godine iskustva</label>
+              <input class="form-input" type="number" name="years_of_experience" value="{{ instructor.years_of_experience }}" min="0">
+                {% if form_errors.price_per_hour %}
+                  <span style="color:var(--red);font-size:0.78rem;">{{ form_errors.price_per_hour.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Jezici</label>
+              <input class="form-input" name="languages" value="{{ instructor.languages|default:'' }}" placeholder="npr. Srpski, Engleski">
+            </div>
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label">O meni</label>
+              <textarea class="form-input" name="bio" rows="4" style="resize:vertical;">{{ instructor.bio|default:'' }}</textarea>
+            </div>
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label">Kvalifikacije</label>
+              <textarea class="form-input" name="qualifications" rows="3" style="resize:vertical;">{{ instructor.qualifications|default:'' }}</textarea>
+            </div>
+          </div>
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">Fotografija profila</label>
+            {% if instructor.photo %}
+              <img src="{{ instructor.photo.url }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:8px;display:block;">
+            {% endif %}
+            <input type="file" name="photo" accept="image/*" class="form-input">
+          </div>
+          <button type="submit" class="btn-primary">Sačuvaj izmene</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="modal-edit-slot" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:420px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Izmeni termin</h3>
+    <form method="POST" id="edit-slot-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Datum</label>
+        <input type="date" name="date" id="edit-date" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Početak</label>
+        <input type="time" name="start_time" id="edit-start" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Trajanje</label>
+        <select name="duration" class="form-select">
+          <option value="60">1 sat</option>
+          <option value="90">1.5 sat</option>
+          <option value="120">2 sata</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button type="submit" class="btn-primary">Sačuvaj</button>
+        <button type="button" class="btn-outline-sm" onclick="document.getElementById('modal-edit-slot').style.display='none'">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- MODAL: razlog odbijanja (SSU_14, 2.2.3) -->
+<div id="modal-reject" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:420px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Odbijanje zahteva</h3>
+    <form method="POST" id="reject-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Razlog odbijanja (opciono)</label>
+        <textarea name="reject_reason" class="form-input" rows="3" style="resize:vertical;" placeholder="npr. Termin je u međuvremenu zauzet"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button type="submit" class="btn-red">Odbij zahtev</button>
+        <button type="button" class="btn-outline-sm" onclick="document.getElementById('modal-reject').style.display='none'">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+  var t = document.getElementById('tab-' + tabId);
+  if (t) t.style.display = 'block';
+}
+function openEditModal(pk, date, startTime) {
+  document.getElementById('edit-date').value = date;
+  document.getElementById('edit-start').value = startTime;
+  document.getElementById('edit-slot-form').action = '/slot/' + pk + '/update/';
+  document.getElementById('modal-edit-slot').style.display = 'flex';
+}
+function openRejectModal(pk) {
+  document.getElementById('reject-form').action = '/booking/' + pk + '/reject/';
+  document.getElementById('modal-reject').style.display = 'flex';
+}
+{% if form_errors %}
+document.addEventListener('DOMContentLoaded', function() {
+  switchTab(document.querySelector('.tab-btn:nth-child(4)'), 'profil');
+});
+{% endif %}
+</script>
+{% endblock %}

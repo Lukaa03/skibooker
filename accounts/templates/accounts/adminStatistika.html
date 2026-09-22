@@ -1,0 +1,83 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Statistika sistema{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/instructorProfile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <div class="page-header">
+    <div class="profile-top">
+      <div style="flex:1">
+        <div class="profile-name">Statistika sistema</div>
+        <div class="profile-meta">Administratorski pregled · {{ total_users }} ukupno registrovanih korisnika</div>
+        <div style="margin-top:12px;">
+            <a href="{% url 'admin:reviews_review_changelist' %}" class="btn-outline-sm">Moderacija recenzija</a>
+            <a href="{% url 'admin:accounts_adminlog_changelist' %}" class="btn-outline-sm">Audit log</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+
+    <div class="section-title">Korisnici platforme</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+      <div class="stat-card"><div><div class="stat-label">Klijenti</div><div class="stat-val">{{ clients_count }}</div></div></div>
+      {% for label, count in business_by_type.items %}
+      <div class="stat-card"><div><div class="stat-label">{{ label }}</div><div class="stat-val">{{ count }}</div></div></div>
+      {% endfor %}
+      <div class="stat-card"><div><div class="stat-label">Zahtevi na čekanju</div><div class="stat-val">{{ pending_requests }}</div></div></div>
+    </div>
+
+    <div class="section-title">Rezervacije i realizacija</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+      <div class="stat-card"><div><div class="stat-label">Aktivne rezervacije</div><div class="stat-val">{{ active_bookings }}</div></div></div>
+      <div class="stat-card"><div><div class="stat-label">Realizovani časovi</div><div class="stat-val">{{ completed_bookings }}</div></div></div>
+      <div class="stat-card"><div><div class="stat-label">Realizovani najmovi</div><div class="stat-val">{{ completed_rentals }}</div></div></div>
+    </div>
+
+    <div class="section-title">Prosečne ocene po kategorijama</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div class="stat-card"><div><div class="stat-label">Instruktori</div><div class="stat-val">{{ avg_instructor|floatformat:1|default:"—" }}</div></div></div>
+      <div class="stat-card"><div><div class="stat-label">Ski centri</div><div class="stat-val">{{ avg_ski_center|floatformat:1|default:"—" }}</div></div></div>
+      <div class="stat-card"><div><div class="stat-label">Rental firme</div><div class="stat-val">{{ avg_rental|floatformat:1|default:"—" }}</div></div></div>
+    </div>
+
+    <div class="section-title" style="margin-top:32px;">Zahtevi za poslovne korisnike</div>
+    {% for req in requests_pending %}
+    <div class="card-box" style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+      <div class="rez-avatar" style="background:linear-gradient(135deg,#4a9eff,#1a73e8);">{{ req.business_name|first }}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;">{{ req.business_name }} <span class="tag">{{ req.get_business_type_display }}</span></div>
+        <div style="font-size:0.82rem;color:var(--text-muted);">{{ req.user.email }} · {{ req.created_at|date:"d. M Y." }}</div>
+      </div>
+      <span class="badge badge-pending">Na čekanju</span>
+      <form method="POST" action="{% url 'approve_request' req.pk %}" style="display:inline;">{% csrf_token %}
+        <button type="submit" class="btn-green">Odobri</button>
+      </form>
+        <form method="POST" action="{% url 'reject_request' req.pk %}" style="display:inline;" onsubmit="return setReason(this)">{% csrf_token %}
+          <input type="hidden" name="reject_reason" class="reason-input">
+          <button type="submit" style="background:#dc2626;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-weight:600;cursor:pointer;">Odbij</button>
+        </form>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);">Nema zahteva na čekanju.</p>
+    {% endfor %}
+
+  </div>
+</div>
+
+<script>
+function setReason(form){
+  var razlog = prompt('Razlog odbijanja:');
+  if (razlog === null) return false;
+  form.querySelector('.reason-input').value = razlog;
+  return true;
+}
+</script>
+{% endblock %}

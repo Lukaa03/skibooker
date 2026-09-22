@@ -1,0 +1,49 @@
+{
+  "id": "c3d4e5f6-0001-4000-8000-000000000020",
+  "version": "2.0",
+  "name": "SSU_03 Pregled ski centara",
+  "url": "http://127.0.0.1:8000",
+  "tests": [
+    {
+      "id": "c3d4e5f6-0002-4000-8000-000000000021",
+      "name": "Legalno - lista ski centara",
+      "commands": [
+        { "id": "a01", "comment": "PREDUSLOV: pokrenut seed_ssu05.py (postoji Ski Centar Kopaonik)", "command": "open", "target": "/ski-centri/", "targets": [], "value": "" },
+        { "id": "a02", "comment": "u listi postoji bar jedna kartica centra (dugme 'Pogledaj centar')", "command": "assertElementPresent", "target": "css=a.btn-book", "targets": [], "value": "" }
+      ]
+    },
+    {
+      "id": "c3d4e5f6-0003-4000-8000-000000000022",
+      "name": "Legalno - pretraga po nazivu",
+      "commands": [
+        { "id": "b01", "comment": "pretraga po 'Kopaonik' (parametar direktno u URL-u)", "command": "open", "target": "/ski-centri/?q=Kopaonik", "targets": [], "value": "" },
+        { "id": "b02", "comment": "rezultat sadrzi centar sa 'Kopaonik' u nazivu", "command": "assertElementPresent", "target": "xpath=//*[contains(text(),'Kopaonik')]", "targets": [], "value": "" }
+      ]
+    },
+    {
+      "id": "c3d4e5f6-0004-4000-8000-000000000023",
+      "name": "Nelegalno - pretraga bez rezultata",
+      "commands": [
+        { "id": "c01", "comment": "besmislen pojam", "command": "open", "target": "/ski-centri/?q=NePostoji123", "targets": [], "value": "" },
+        { "id": "c02", "comment": "prikazuje se poruka o praznom rezultatu", "command": "assertElementPresent", "target": "xpath=//*[contains(text(),'Nema pronađenih ski centara')]", "targets": [], "value": "" },
+        { "id": "c03", "comment": "nema kartice centra u rezultatu", "command": "assertElementNotPresent", "target": "css=a.btn-book", "targets": [], "value": "" }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "c3d4e5f6-0005-4000-8000-000000000024",
+      "name": "SSU_03 Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "c3d4e5f6-0002-4000-8000-000000000021",
+        "c3d4e5f6-0003-4000-8000-000000000022",
+        "c3d4e5f6-0004-4000-8000-000000000023"
+      ]
+    }
+  ],
+  "urls": ["http://127.0.0.1:8000"],
+  "plugins": []
+}

@@ -1,0 +1,61 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Prijavi se{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/login.css' %}">
+{% endblock %}
+
+{% block nav %}
+  <a href="{% url 'home' %}" class="nav-logo">
+    <img src="{% static 'images/logo.png' %}" alt="SkiBooker">SkiBooker
+  </a>
+  <a href="{% url 'register' %}" style="color:var(--blue);text-decoration:none;font-size:0.9rem;font-weight:500;">Nemam nalog → Registruj se</a>
+{% endblock nav %}
+
+{% block content %}
+<div class="main">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="{% static 'images/logo.png' %}" alt=""><span>SkiBooker</span>
+    </div>
+    <h1>Dobrodošli nazad</h1>
+    <p class="auth-sub">Prijavi se na svoj nalog</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="error-msg">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Email adresa</label>
+        <input type="email" name="email" class="form-input" placeholder="ime@primer.com"
+               value="{{ form.email.value|default:'' }}">
+        {% if form.email.errors %}
+          <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ form.email.errors.0 }}</p>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lozinka</label>
+        <input type="password" name="password" class="form-input" placeholder="••••••••">
+        {% if form.password.errors %}
+          <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ form.password.errors.0 }}</p>
+        {% endif %}
+        <a href="#" class="forgot">Zaboravili ste lozinku?</a>
+      </div>
+      <button type="submit" class="btn-submit">Prijavi se</button>
+    </form>
+
+    <div class="divider">ili</div>
+    <div class="auth-switch">Nemaš nalog? <a href="{% url 'register' %}">Registruj se besplatno</a></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer><div class="footer-bottom">© 2026 SkiBooker · Tim SnowTech</div></footer>
+{% endblock footer %}

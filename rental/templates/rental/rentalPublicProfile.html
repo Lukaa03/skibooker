@@ -1,0 +1,148 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – {{ rental.business_profile.business_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/rentalPublicProfile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <!-- HERO -->
+  <div class="prof-hero">
+    <div class="prof-photo">
+
+            {% if rental.logo %}
+                <img
+                    src="{{ rental.logo }}"
+                    alt="{{ rental.business_profile.business_name }}"
+                    style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                        border-radius:var(--radius);
+                    ">
+            {% else %}
+                {{ rental.business_profile.business_name|first|upper }}
+            {% endif %}
+
+        </div>
+    <div class="prof-info">
+      <div class="breadcrumb">
+        <a href="{% url 'home' %}">Početna</a> /
+        <a href="{% url 'rental_list' %}">Oprema</a> /
+        {{ rental.business_profile.business_name }}
+      </div>
+      <h1>{{ rental.business_profile.business_name }}</h1>
+      <div class="prof-meta">
+        {{ rental.business_profile.location }}
+        {% if rental.contact_phone %} · {{ rental.contact_phone }}{% endif %}
+        {% if rental.contact_email %} · {{ rental.contact_email }}{% endif %}
+      </div>
+      <div class="prof-tags">
+        <span class="prof-tag">Rental firma</span>
+        {% if rental.website %}<span class="prof-tag">🌐 {{ rental.website }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- SADRŽAJ -->
+  <div class="content-grid">
+
+    <!-- LEVO: INFO -->
+    <div>
+      <div class="card-box">
+        <div class="section-title">O firmi</div>
+        {% if rental.description %}
+          <p style="font-size:0.9rem;color:var(--text-muted);line-height:1.75;">{{ rental.description }}</p>
+        {% else %}
+          <p style="font-size:0.9rem;color:var(--text-muted);">Nema opisa.</p>
+        {% endif %}
+        <hr class="divider">
+        <ul class="info-list">
+          <li><span class="info-key">Lokacija</span><span>{{ rental.business_profile.location }}</span></li>
+          {% if rental.contact_email %}<li><span class="info-key">Email</span><span>{{ rental.contact_email }}</span></li>{% endif %}
+          {% if rental.contact_phone %}<li><span class="info-key">Telefon</span><span>{{ rental.contact_phone }}</span></li>{% endif %}
+          {% if rental.website %}<li><span class="info-key">Website</span><span><a href="{{ rental.website }}" target="_blank">{{ rental.website }}</a></span></li>{% endif %}
+        </ul>
+      </div>
+      <div class="card-box" style="margin-top:20px;">
+        <div class="section-title">Ocene korisnika · <span class="stars">★ {{ avg_rating|floatformat:1|default:"N/A" }}</span></div>
+        {% for review in reviews %}
+        <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-weight:600;font-size:0.9rem;">{{ review.reviewer.user.get_full_name }}</span>
+            <span style="color:var(--gold);font-size:0.8rem;">{% for i in review.stars_range %}★{% endfor %}</span>
+            <span style="font-size:0.78rem;color:var(--text-muted);margin-left:auto;">{{ review.created_at|date:"d. M Y." }}</span>
+          </div>
+          <p style="font-size:0.86rem;color:var(--text-muted);">{{ review.comment }}</p>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted);font-size:0.88rem;">Još nema ocena za ovu firmu.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- DESNO: OPREMA -->
+    <div>
+      <div class="card-box">
+        <div class="section-title">Oprema u ponudi</div>
+
+        {% if equipment_list %}
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            {% for item in equipment_list %}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--off-white);">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div style="width:48px;height:48px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#4a9eff,#1a73e8);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+                  {% if item.type == 'skije' %}🎿
+                  {% elif item.type == 'snowboard' %}🏂
+                  {% elif item.type == 'cipele' %}👢
+                  {% elif item.type == 'kaciga' %}⛑️
+                  {% else %}🎽{% endif %}
+                </div>
+                <div>
+
+                    <div style="font-weight:700;font-size:1rem;">
+                        {{ item.brand.name }} {{ item.model }}
+                    </div>
+
+                    <div style="font-size:0.82rem;color:var(--text-muted);margin-top:3px;">
+                        {{ item.category.name }}
+                    </div>
+
+                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:6px;">
+                        Dostupnih veličina:
+                        <strong>{{ item.variants.count }}</strong>
+                    </div>
+
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div style="text-align:right;">
+                  <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1rem;color:var(--navy);">{{ item.price_per_day }} RSD</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">/ dan</div>
+                </div>
+                {% if item.is_active %}
+                  <span class="badge badge-confirmed">Dostupno</span>
+                {% else %}
+                  <span class="badge badge-pending">Nedostupno</span>
+                {% endif %}
+                  <a href="{% url 'equipment_detail' item.id %}" class="btn-book">
+                            Rezerviši
+                        </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color:var(--text-muted);font-size:0.88rem;">Nema opreme u ponudi.</p>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Moj profil – Ski škola{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/instructorProfile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="profile-top">
+      <div class="profile-photo" style="background:linear-gradient(135deg,#4a9eff,#1a73e8);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:1.5rem;color:white;flex-shrink:0;">
+        {{ school.business_profile.business_name|first }}
+      </div>
+      <div style="flex:1">
+        <div class="profile-name">{{ school.business_profile.business_name }}</div>
+        <div class="profile-meta">
+          Ski škola · {{ school.business_profile.location }}
+          {% if school.ski_center %} · {{ school.ski_center.business_profile.business_name }}{% endif %}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <span class="tag">{{ instructors|length }} instruktora</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <div class="stat-card">
+          <div><div class="stat-label">Instruktori</div><div class="stat-val">{{ instructors|length }}</div><div class="stat-sub">Aktivnih</div></div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label">Ocena škole</div><div class="stat-val">{{ school_avg|floatformat:1|default:"N/A" }}</div><div class="stat-sub">Prosek</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SADRZAJ -->
+  <div class="content-wrap">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab(this,'instruktori')">Moji instruktori</button>
+      <button class="tab-btn" onclick="switchTab(this,'rezervacije')">Rezervacije</button>
+      <button class="tab-btn" onclick="switchTab(this,'ocene')">Ocene</button>
+    </div>
+
+    <!-- TAB: INSTRUKTORI -->
+    <div id="tab-instruktori">
+      <div class="section-title">Instruktori u školi</div>
+      {% for ins in instructors %}
+      <div class="card-box" style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.95rem;">{{ ins.business_profile.user.get_full_name }}</div>
+          <div style="font-size:0.82rem;color:var(--text-muted);">
+            {{ ins.get_specialization_display }} · {{ ins.price_per_hour }} RSD/čas · <span class="stars">★</span> {{ ins.avg_rating|floatformat:1|default:"N/A" }}
+          </div>
+        </div>
+        <a href="{% url 'instructor_public_profile' ins.pk %}" class="btn-outline-sm">Profil</a>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Nema instruktora u ovoj školi.</p>
+      {% endfor %}
+    </div>
+
+    <!-- TAB: REZERVACIJE -->
+    <div id="tab-rezervacije" style="display:none">
+      <div class="section-title">Rezervacije časova</div>
+      <form method="GET" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <select name="instructor" class="form-select" style="max-width:220px;" onchange="this.form.submit()">
+          <option value="">Svi instruktori</option>
+          {% for ins in instructors %}
+          <option value="{{ ins.pk }}" {% if instructor_filter == ins.pk|stringformat:'s' %}selected{% endif %}>{{ ins.business_profile.user.get_full_name }}</option>
+          {% endfor %}
+        </select>
+        <select name="status" class="form-select" style="max-width:200px;" onchange="this.form.submit()">
+          <option value="">Svi statusi</option>
+          <option value="ceka_potvrdu" {% if status_filter == 'ceka_potvrdu' %}selected{% endif %}>Na čekanju</option>
+          <option value="potvrdjena" {% if status_filter == 'potvrdjena' %}selected{% endif %}>Potvrđena</option>
+          <option value="realizovana" {% if status_filter == 'realizovana' %}selected{% endif %}>Realizovana</option>
+          <option value="odbijena" {% if status_filter == 'odbijena' %}selected{% endif %}>Odbijena</option>
+        </select>
+      </form>
+      {% for booking in bookings %}
+      <div class="card-box" style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.9rem;">{{ booking.client.user.get_full_name }} → {{ booking.time_slot.instructor.business_profile.user.get_full_name }}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">{{ booking.time_slot.date }} · {{ booking.time_slot.start_time|slice:':5' }}–{{ booking.time_slot.end_time|slice:':5' }}</div>
+        </div>
+        {% if booking.status == 'ceka_potvrdu' %}<span class="badge badge-pending">Na čekanju</span>
+        {% elif booking.status == 'potvrdjena' %}<span class="badge badge-confirmed">Potvrđeno</span>
+        {% elif booking.status == 'realizovana' %}<span class="badge badge-done">Realizovano</span>
+        {% elif booking.status == 'odbijena' %}<span class="badge badge-cancelled">Odbijeno</span>
+        {% else %}<span class="badge badge-cancelled">{{ booking.status }}</span>{% endif %}
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Nema rezervacija.</p>
+      {% endfor %}
+    </div>
+
+    <!-- TAB: OCENE -->
+    <div id="tab-ocene" style="display:none">
+      <div class="section-title">Prosečna ocena škole: <span class="stars">★ {{ school_avg|floatformat:1|default:"N/A" }}</span></div>
+      <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:16px;">Izvedeno iz ocena svih instruktora škole.</p>
+      {% for ins in instructors %}
+      <div class="card-box" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-weight:600;font-size:0.9rem;">{{ ins.business_profile.user.get_full_name }}</span>
+        <span class="stars">★ {{ ins.avg_rating|floatformat:1|default:"N/A" }}</span>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Nema instruktora.</p>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+  var t = document.getElementById('tab-' + tabId);
+  if (t) t.style.display = 'block';
+}
+</script>
+{% endblock %}

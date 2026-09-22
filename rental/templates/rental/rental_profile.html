@@ -1,0 +1,974 @@
+{% extends "rental/base.html" %}
+{% load static %}
+
+{% block title %}Moj profil – Rental firma{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'styles/rental_profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+    <div class="page-header">
+        <div class="profile-top">
+            <div class="profile-logo-placeholder">
+                    {{ rental.business_profile.business_name|first|upper }}
+                </div>
+                <div class="profile-main-info">
+                    <div class="profile-name">{{ rental.business_profile.business_name }}</div>
+                    <div class="profile-meta">
+                        Rental firma
+                        {% if rental.ski_center %} · {{ rental.ski_center }}{% endif %}
+                        {% if rental.contact_email %} · {{ rental.contact_email }}{% endif %}
+                    </div>
+                    <div class="profile-tags">
+                        <span class="tag">⭐ {{ rental.average_rating }}</span>
+                        <span class="tag">✓ Odobrena</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div>
+                        <div class="stat-label">Stavki opreme</div>
+                        <div class="stat-val">{{ equipment|length }}</div>
+                        <div class="stat-sub">Ukupno</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div>
+                        <div class="stat-label">Rezervacije</div>
+                        <div class="stat-val">{{ reservations|length }}</div>
+                        <div class="stat-sub">Ukupno</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div>
+                        <div class="stat-label">Ocena</div>
+                        <div class="stat-val">{{ rental.average_rating }}</div>
+                        <div class="stat-sub">Prosečna</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div>
+                        <div class="stat-label">Na čekanju</div>
+                        <div class="stat-val">{{ pending_reservations_count|default:0 }}</div>
+                        <div class="stat-sub">Zahteva</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="content-wrap">
+
+        <div class="tab-row">
+            <button
+                type="button"
+                class="tab-btn active"
+                data-tab="rezervacije"
+                onclick="switchTab(this, 'rezervacije')">
+                Rezervacije
+            </button>
+
+            <button
+                type="button"
+                class="tab-btn"
+                data-tab="oprema"
+                onclick="switchTab(this, 'oprema')">
+                Moja oprema
+            </button>
+
+            <button
+                type="button"
+                class="tab-btn"
+                data-tab="profil"
+                onclick="switchTab(this, 'profil')">
+                Podaci firme
+            </button>
+        </div>
+
+        <div id="tab-rezervacije">
+            <div class="section-title">Zahtevi za opremu</div>
+
+            {% for reservation in reservations %}
+                <div class="rez-item">
+                    <div class="rez-top">
+                        <div class="rez-avatar">
+                            {% if reservation.client and reservation.client.user %}
+                                {{ reservation.client.user.first_name|first|upper }}{{ reservation.client.user.last_name|first|upper }}
+                            {% else %}
+                                K
+                            {% endif %}
+                        </div>
+
+                        <div class="rez-info">
+                            <div class="rez-name">
+                                {% if reservation.client and reservation.client.user %}
+                                    {{ reservation.client.user.get_full_name|default:reservation.client.user.username }}
+                                {% else %}
+                                    Obrisani korisnik
+                                {% endif %}
+
+                                <span class="badge badge-opr">Oprema</span>
+                            </div>
+
+                            <div class="rez-date">
+                                {% if reservation.equipment_variant %}
+                                    {{ reservation.equipment_variant.equipment.brand.name }}
+                                    {{ reservation.equipment_variant.equipment.model }}
+                                    · veličina {{ reservation.equipment_variant.size }}
+                                {% else %}
+                                    Oprema više nije dostupna
+                                {% endif %}
+                                · {{ reservation.start_date|date:"d.m.Y." }}–{{ reservation.end_date|date:"d.m.Y." }}
+                                · {{ reservation.quantity }} kom.
+                            </div>
+                        </div>
+
+                        {% if reservation.status == 'ceka_potvrdu' %}
+                            <span class="badge badge-pending">Na čekanju</span>
+                        {% elif reservation.status == 'potvrdjena' %}
+                            <span class="badge badge-confirmed">Potvrđeno</span>
+                        {% elif reservation.status == 'realizovana' %}
+                            <span class="badge badge-done">Realizovano</span>
+                        {% elif reservation.status == 'odbijena' %}
+                            <span class="badge badge-cancelled">Odbijeno</span>
+                        {% else %}
+                            <span class="badge badge-cancelled">Otkazano</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="rez-bottom">
+                        <span style="font-size:0.82rem;color:var(--text-muted);">
+                            Kreirano: {{ reservation.created_at|date:"d.m.Y. H:i" }}
+                        </span>
+
+                        <div class="rez-actions">
+                            {% if reservation.status == 'ceka_potvrdu' %}
+                                <form
+                                    method="post"
+                                    action="{% url 'accept_reservation' reservation.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-green">
+                                        Prihvati
+                                    </button>
+                                </form>
+
+                                <button
+                                    type="button"
+                                    class="btn-red"
+                                    onclick="toggleReject({{ reservation.pk }})">
+                                    Odbij
+                                </button>
+                            {% elif reservation.status == 'potvrdjena' %}
+                                <form
+                                    method="post"
+                                    action="{% url 'complete_reservation' reservation.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-primary">
+                                        Označi kao realizovano
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div
+                            id="reject-{{ reservation.pk }}"
+                            style="display:none; margin-top:15px;">
+
+                            <form
+                                method="post"
+                                action="{% url 'reject_reservation' reservation.pk %}">
+
+                                {% csrf_token %}
+
+                                <textarea
+                                    name="reject_reason"
+                                    class="form-textarea"
+                                    placeholder="Unesite razlog odbijanja..."
+                                    required></textarea>
+
+                                <div style="margin-top:10px; display:flex; gap:8px;">
+
+                                    <button
+                                        type="submit"
+                                        class="btn-red">
+                                        Potvrdi odbijanje
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn-outline-sm"
+                                        onclick="toggleReject({{ reservation.pk }})">
+                                        Otkaži
+                                    </button>
+
+                                </div>
+                            </form>
+                        </div>
+
+
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    Trenutno nema rezervacija opreme.
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="tab-oprema" style="display:none">
+            <div class="equip-toolbar">
+                <div class="section-title" style="margin:0">
+                    Katalog opreme
+                </div>
+
+                <button
+                    type="button"
+                    id="open-equipment-modal"
+                    class="btn-blue">
+                    + Dodaj stavku
+                </button>
+            </div>
+
+            <div class="equip-grid">
+                {% for item in equipment %}
+                    <div class="equip-card">
+                        <div class="equip-img">
+                            {% if item.image %}
+                                <img
+                                    src="{{ item.image.url }}"
+                                    alt="{{ item.brand.name }} {{ item.model }}">
+                            {% else %}
+                                <div class="equip-image-placeholder">
+                                    Nema slike
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="equip-body">
+                            <div class="equip-name">
+                                {{ item.category.name }} — {{ item.brand.name }} {{ item.model }}
+                            </div>
+
+                            <div class="equip-meta">
+                                Veličine:
+                                {% for variant in item.variants.all %}
+                                    {{ variant.size }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    nisu dodate
+                                {% endfor %}
+                                <br>
+                                {{ item.price_per_day }} RSD/dan
+                            </div>
+
+                            <div class="equip-actions">
+                                <button
+                                    type="button"
+                                    class="btn-outline-sm edit-equipment"
+
+                                    data-url="{% url 'update_equipment' item.pk %}"
+
+                                    data-category="{{ item.category.id }}"
+                                    data-brand="{{ item.brand.id }}"
+                                    data-model="{{ item.model }}"
+                                    data-description="{{ item.description }}"
+                                    data-price="{{ item.price_per_day }}"
+                                    data-image="{{ item.image }}"
+                                    data-active="{{ item.is_active|yesno:'true,false' }}">
+
+                                    Izmeni
+
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn-green add-variant-btn"
+                                    data-url="{% url 'add_variant' item.pk %}">
+
+                                    Dodaj veličinu
+
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn-red delete-equipment-btn"
+                                    data-url="{% url 'delete_equipment' item.pk %}"
+                                    data-name="{{ item.brand.name }} {{ item.model }}">
+
+                                    Obriši
+
+                                </button>
+
+                                {% if item.is_active %}
+                                    <span class="badge badge-confirmed">
+                                        Dostupno
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-cancelled">
+                                        Neaktivno
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state" style="grid-column:1/-1;">
+                        Još nema dodate opreme.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="tab-profil" style="display:none">
+            <div class="section-title">Podaci firme</div>
+
+            <div class="card-box">
+                <form method="post" action="{% url 'update_rental_profile' %}">
+
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Naziv firme</label>
+                            <input
+                                class="form-input"
+                                type="text"
+                                name="business_name"
+                                value="{{ rental.business_profile.business_name }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input
+                                class="form-input"
+                                type="email"
+                                name="contact_email"
+                                value="{{ rental.contact_email|default:'' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ski centar</label>
+                            <select
+                                class="form-select"
+                                name="ski_center">
+                                <option value="">
+                                    Nije izabran
+                                </option>
+                                {% for center in ski_centers %}
+                                    <option
+                                        value="{{ center.id }}"
+                                        {% if rental.ski_center == center %}
+                                            selected
+                                        {% endif %}>
+
+                                        {{ center.business_profile.business_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Telefon</label>
+                            <input
+                                class="form-input"
+                                type="text"
+                                name="contact_phone"
+                                value="{{ rental.contact_phone|default:'' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Lokacija</label>
+                            <input
+                                class="form-input"
+                                type="text"
+                                name="location"
+                                value="{{ rental.business_profile.location|default:'' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Veb-sajt</label>
+                            <input
+                                class="form-input"
+                                type="url"
+                                name="website"
+                                value="{{ rental.website|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Opis firme</label>
+                        <textarea
+                            class="form-textarea"
+                            name="description">{{ rental.description|default:'' }}</textarea>
+                    </div>
+
+
+                    <button type="submit" class="btn-primary">
+                        Sačuvaj izmene
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="equipment-modal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h2 id="equipment-modal-title" class="modal-title">Dodaj novu opremu</h2>
+            <button
+                type="button"
+                id="close-equipment-modal"
+                class="modal-close">
+                ×
+            </button>
+        </div>
+
+        <form
+            id="equipment-form"
+            method="post"
+            enctype="multipart/form-data"
+            action="{% url 'add_equipment' %}">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">
+                    Kategorija
+                </label>
+                {{ equipment_form.category }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Brend
+                </label>
+                {{ equipment_form.brand }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Model
+                </label>
+                {{ equipment_form.model }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Opis
+                </label>
+                {{ equipment_form.description }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Cena po danu
+                </label>
+                {{ equipment_form.price_per_day }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    Fotografija
+                </label>
+                {{ equipment_form.image }}
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {{ equipment_form.is_active }}
+                    Aktivna ponuda
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    id="cancel-equipment-modal"
+                    class="btn-outline-sm">
+                    Otkaži
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn-primary">
+                    Sačuvaj
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+<div
+    id="variant-modal"
+    class="modal-overlay">
+
+    <div class="modal-box"
+         style="max-width:420px;">
+
+        <div class="modal-header">
+
+            <h2 class="modal-title">
+                Dodaj veličinu
+            </h2>
+
+            <button
+                type="button"
+                id="close-variant-modal"
+                class="modal-close">
+
+                ×
+
+            </button>
+
+        </div>
+
+        <form
+            id="variant-form"
+            method="post">
+
+            {% csrf_token %}
+
+            <div class="form-group">
+
+                <label class="form-label">
+
+                    Veličina
+
+                </label>
+
+                {{ variant_form.size }}
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="form-label">
+
+                    Količina
+
+                </label>
+
+                {{ variant_form.quantity }}
+
+            </div>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    id="cancel-variant-modal"
+                    class="btn-outline-sm">
+
+                    Otkaži
+
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn-primary">
+
+                    Sačuvaj
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+<div
+    id="delete-modal"
+    class="modal-overlay">
+
+    <div
+        class="modal-box"
+        style="max-width:420px;">
+
+        <div class="modal-header">
+
+            <h2 class="modal-title">
+
+                Obriši opremu
+
+            </h2>
+
+        </div>
+
+        <p id="delete-text">
+
+        </p>
+
+        <form
+            id="delete-form"
+            method="post">
+
+            {% csrf_token %}
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    id="cancel-delete-modal"
+                    class="btn-outline-sm">
+
+                    Otkaži
+
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn-red">
+
+                    Obriši
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+    function switchTab(button, tabId) {
+        document.querySelectorAll(".tab-btn").forEach(function (tabButton) {
+            tabButton.classList.remove("active");
+        });
+
+        button.classList.add("active");
+
+        document.querySelectorAll('[id^="tab-"]').forEach(function (tabContent) {
+            tabContent.style.display = "none";
+        });
+
+        const selectedTab = document.getElementById("tab-" + tabId);
+
+        if (selectedTab) {
+            selectedTab.style.display = "block";
+        }
+    }
+
+    function openTab(tabId) {
+        const button = document.querySelector(
+            '.tab-btn[data-tab="' + tabId + '"]'
+        );
+
+        if (button) {
+            switchTab(button, tabId);
+            button.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }
+    }
+    function toggleReject(id){
+
+        const form = document.getElementById("reject-" + id);
+
+        const actions = form.previousElementSibling.querySelector(".rez-actions");
+
+        if(form.style.display === "none" || form.style.display === ""){
+
+            form.style.display = "block";
+            actions.style.display = "none";
+
+        }else{
+
+            form.style.display = "none";
+            actions.style.display = "flex";
+
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const modal = document.getElementById("equipment-modal");
+        const openButton = document.getElementById("open-equipment-modal");
+        const closeButton = document.getElementById("close-equipment-modal");
+        const cancelButton = document.getElementById("cancel-equipment-modal");
+
+        const modalTitle = document.getElementById( "equipment-modal-title" );
+        const form = document.getElementById("equipment-form");
+
+        function openEquipmentModal() {
+
+            modalTitle.innerText =
+                "Dodaj novu opremu";
+
+            form.action =
+                "{% url 'add_equipment' %}";
+
+            form.reset();
+
+            modal.classList.add("open");
+
+            document.body.style.overflow = "hidden";
+
+        }
+
+        function closeEquipmentModal() {
+            modal.classList.remove("open");
+            document.body.style.overflow = "";
+        }
+
+        function openEditModal(button){
+
+            modalTitle.innerText =
+                "Izmeni opremu";
+
+            form.action =
+                button.dataset.url;
+
+            document.getElementById(
+                "id_category"
+            ).value =
+                button.dataset.category;
+
+            document.getElementById(
+                "id_brand"
+            ).value =
+                button.dataset.brand;
+
+            document.getElementById(
+                "id_model"
+            ).value =
+                button.dataset.model;
+
+            document.getElementById(
+                "id_description"
+            ).value =
+                button.dataset.description;
+
+            document.getElementById(
+                "id_price_per_day"
+            ).value =
+                button.dataset.price;
+
+            document.getElementById(
+                "id_image"
+            ).value =
+                button.dataset.image;
+
+            document.getElementById(
+                "id_is_active"
+            ).checked =
+                button.dataset.active === "true";
+
+            modal.classList.add("open");
+
+        }
+
+        openButton.addEventListener("click", openEquipmentModal);
+        closeButton.addEventListener("click", closeEquipmentModal);
+        cancelButton.addEventListener("click", closeEquipmentModal);
+
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                closeEquipmentModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeEquipmentModal();
+            }
+        });
+        document.querySelectorAll(".edit-equipment").forEach(function(button){
+
+            button.addEventListener(
+                "click",
+                function(){
+
+                    openEditModal(button);
+
+                }
+            );
+
+        });
+
+        const variantModal =
+            document.getElementById(
+                "variant-modal"
+            );
+
+        const variantForm =
+            document.getElementById(
+                "variant-form"
+            );
+
+        document
+        .querySelectorAll(".add-variant-btn")
+        .forEach(function(button){
+
+            button.addEventListener(
+                "click",
+                function(){
+
+                    variantForm.action =
+                        button.dataset.url;
+
+                    variantForm.reset();
+
+                    variantModal.classList.add(
+                        "open"
+                    );
+
+                }
+            );
+
+        });
+
+        document
+        .getElementById(
+            "close-variant-modal"
+        )
+        .addEventListener(
+            "click",
+            function(){
+
+                variantModal.classList.remove(
+                    "open"
+                );
+
+            }
+        );
+
+        document
+        .getElementById(
+            "cancel-variant-modal"
+        )
+        .addEventListener(
+            "click",
+            function(){
+
+                variantModal.classList.remove(
+                    "open"
+                );
+
+            }
+        );
+
+        variantModal.addEventListener(
+            "click",
+            function(event){
+
+                if(event.target===variantModal){
+
+                    variantModal.classList.remove(
+                        "open"
+                    );
+
+                }
+
+            }
+        );
+        // Otvori odgovarajući tab nakon redirect-a
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get("tab");
+
+        if (tab) {
+
+            const button = document.querySelector(
+                '.tab-btn[data-tab="' + tab + '"]'
+            );
+
+            if (button) {
+                switchTab(button, tab);
+            }
+
+        }
+        const deleteModal =
+    document.getElementById(
+        "delete-modal"
+    );
+
+    const deleteForm =
+        document.getElementById(
+            "delete-form"
+        );
+
+    const deleteText =
+        document.getElementById(
+            "delete-text"
+        );
+
+    document
+    .querySelectorAll(".delete-equipment-btn")
+    .forEach(function(button){
+
+        button.addEventListener(
+            "click",
+            function(){
+
+                deleteForm.action =
+                    button.dataset.url;
+
+                deleteText.innerHTML =
+                    'Da li ste sigurni da želite da uklonite <strong>' +
+                    button.dataset.name +
+                    '</strong> iz ponude?';
+
+                deleteModal.classList.add(
+                    "open"
+                );
+
+            }
+        );
+
+    });
+
+    document
+    .getElementById(
+        "cancel-delete-modal"
+    )
+    .addEventListener(
+        "click",
+        function(){
+
+            deleteModal.classList.remove(
+                "open"
+            );
+
+        }
+    );
+
+    deleteModal.addEventListener(
+        "click",
+        function(event){
+
+            if(event.target===deleteModal){
+
+                deleteModal.classList.remove(
+                    "open"
+                );
+
+            }
+
+        }
+    );
+
+    });
+</script>
+
+{% endblock %}
+

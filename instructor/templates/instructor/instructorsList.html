@@ -1,0 +1,96 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Instruktori{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/instructorsList.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <div class="page-hero">
+    <h1>Instruktori</h1>
+    <p>Pronađi proverenog instruktora skijanja ili snowboarda u tvom ski centru</p>
+  </div>
+
+  <div class="filters-bar">
+    <form method="GET" action="{% url 'instructors_list' %}">
+      <div class="filters-grid">
+        <div>
+          <label class="form-label">Pretraga</label>
+          <input class="form-input" name="q" placeholder="Ime instruktora..." value="{{ request.GET.q }}">
+        </div>
+        <div>
+          <label class="form-label">Specijalizacija</label>
+          <select class="form-select" name="spec">
+            <option value="">Sve</option>
+            <option value="freeride" {% if request.GET.spec == 'freeride' %}selected{% endif %}>Freeride</option>
+            <option value="pocetnici" {% if request.GET.spec == 'pocetnici' %}selected{% endif %}>Početnička nastava</option>
+            <option value="snowboard" {% if request.GET.spec == 'snowboard' %}selected{% endif %}>Snowboard</option>
+            <option value="napredna" {% if request.GET.spec == 'napredna' %}selected{% endif %}>Napredna tehnika</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Lokacija</label>
+          <input class="form-input" name="lokacija" placeholder="Grad, ski centar..." value="{{ request.GET.lokacija }}">
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button type="submit" class="btn-search">Pretraži</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="list-wrap">
+    <div class="list-header">
+      <span class="list-count">Pronađeno <strong>{{ instruktori.count }}</strong> instruktora</span>
+    </div>
+
+    {% for instructor in instruktori %}
+    <div class="instr-row">
+      <div class="instr-photo-placeholder">
+        {% if instructor.photo %}
+          <img src="{{ instructor.photo.url }}" alt="{{ instructor.business_profile.user.get_full_name }}" style="width:100%;height:100%;object-fit:cover;">
+        {% else %}
+          {{ instructor.business_profile.user.first_name|first }}{{ instructor.business_profile.user.last_name|first }}
+        {% endif %}
+      </div>
+      <div class="instr-info">
+        <h3><a href="{% url 'instructor_public_profile' instructor.pk %}">{{ instructor.business_profile.user.get_full_name }}</a></h3>
+        <div class="instr-meta">
+          {{ instructor.business_profile.location }}
+          {% if instructor.ski_center %} · {{ instructor.ski_center.business_profile.business_name }}{% endif %}
+          · {{ instructor.years_of_experience }} godina iskustva
+        </div>
+        <div class="instr-tags">
+          {% if instructor.specialization %}<span class="tag">{{ instructor.get_specialization_display }}</span>{% endif %}
+          {% if instructor.languages %}
+            {% for lang in instructor.languages.split %}
+              <span class="tag">{{ lang }}</span>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div class="instr-stats">
+          <span class="instr-stat">{{ instructor.free_slots_count }} slobodnih termina</span>
+          <span class="instr-stat">{{ instructor.years_of_experience }} god. iskustva</span>
+        </div>
+      </div>
+      <div class="instr-right">
+        <div>
+          <div class="price-big">{{ instructor.price_per_hour }} RSD</div>
+          <div class="price-sub">po času (60 min)</div>
+        </div>
+        <a href="{% url 'instructor_public_profile' instructor.pk %}" class="btn-book">Rezerviši čas</a>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:60px;color:var(--text-muted);">
+      <p style="font-size:1.1rem;margin-bottom:12px;">Nema pronađenih instruktora.</p>
+      <a href="{% url 'instructors_list' %}" style="color:var(--blue);">Poništi filtere</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

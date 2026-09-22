@@ -1,0 +1,412 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Boje i promenljive */
+:root {
+    --red: #dc2626;
+    --gold: #f59e0b;
+    --navy: #0d1b2a;
+    --navy-mid: #162033;
+    --blue: #1a73e8;
+    --white: #fff;
+    --off-white: #f7f9fc;
+    --text: #1a1a2e;
+    --text-muted: #5a6a7e;
+    --border: #e2eaf4;
+    --green: #16a34a;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 8px 40px rgba(13, 27, 42, 0.13);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--off-white);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navigacija */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 52px;
+    height: 68px;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.nav-logo img {
+    height: 36px;
+    width: 36px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 4px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.nav-links a:hover {
+    background: var(--off-white);
+}
+
+.main {
+    flex: 1;
+    display: block;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 100px 24px 60px;
+}
+
+
+/* Kartica sa formom */
+.auth-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 520px;
+    padding: 44px 40px;
+    justify-self: center;
+     margin-top: 40px;
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.auth-logo img {
+    height: 40px;
+    width: 40px;
+}
+
+.auth-logo span {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+}
+
+h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.auth-sub {
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+}
+
+/* Izbor tipa korisnika */
+.type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.type-option {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.type-option:hover {
+    border-color: var(--blue);
+}
+
+.type-option.active {
+    border-color: var(--blue);
+    background: #f0f7ff;
+}
+
+.type-icon {
+    font-size: 1.6rem;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.type-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.type-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Forma */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    border-color: var(--blue);
+}
+
+.form-select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-select:focus {
+    border-color: var(--blue);
+}
+
+/* Polja za poslovnog korisnika - skrivena po defaultu */
+.biz-fields {
+    display: none;
+}
+
+.biz-fields.show {
+    display: block;
+}
+
+/* Info box */
+.info-box {
+    background: #f0f7ff;
+    border: 1px solid #c3dafe;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.83rem;
+    color: #1e40af;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+
+/* Dugme */
+.btn-submit {
+    display: block;
+    width: 100%;
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background: var(--navy-mid);
+}
+
+.terms {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 14px;
+    line-height: 1.5;
+}
+
+.terms a {
+    color: var(--blue);
+    text-decoration: none;
+}
+
+.auth-switch {
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-top: 20px;
+}
+
+.auth-switch a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Footer */
+footer {
+    background: var(--navy);
+    padding: 28px 52px;
+    text-align: center;
+}
+
+.footer-bottom {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.22);
+}
+
+
+/* Nav desna strana */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-user {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.nav-btn-outline {
+    padding: 8px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.2s;
+}
+
+.nav-btn-outline:hover { border-color: var(--navy); }
+
+.nav-cta {
+    padding: 8px 16px;
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.nav-cta:hover { background: var(--navy-mid); }
+
+/* Footer */
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+    text-align: left;
+}
+
+.footer-logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.footer-brand-name {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--white);
+}
+
+.footer-tagline {
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.45);
+}
+
+.footer-col h4 {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.footer-col ul {
+    list-style: none;
+}
+
+.footer-col ul li {
+    margin-bottom: 8px;
+}
+
+.footer-col ul a {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-col ul a:hover { color: var(--white); }

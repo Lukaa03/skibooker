@@ -1,0 +1,93 @@
+{
+  "id": "e9f0a1b2-0001-4000-8000-000000000090",
+  "version": "2.0",
+  "name": "SSU_09 Upravljanje profilom ski centra",
+  "url": "http://127.0.0.1:8000",
+  "tests": [
+    {
+  "id": "e9f0a1b2-0002-4000-8000-000000000091",
+  "name": "Nelegalno - neulogovan pristup",
+  "commands": [
+        {
+          "id": "r00_init",
+          "comment": "Prvo ucitaj pocetnu stranicu da bismo uopste bili na sajtu",
+          "command": "open",
+          "target": "/",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "r00_check_logout",
+          "comment": "Pokusaj da kliknes na odjavu preko forme za logout ako je korisnik ulogovan",
+          "command": "executeScript",
+          "target": "var logoutForm = document.querySelector('form[action*=\"logout\"]'); if (logoutForm) { logoutForm.submit(); } else { var logoutBtn = document.querySelector('a[href*=\"logout\"]'); if (logoutBtn) logoutBtn.click(); }",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "r00_pause",
+          "comment": "Sacekaj malo da se odjava zavrsi ako je bila pokrenuta",
+          "command": "pause",
+          "target": "1500",
+          "value": ""
+        },
+        {
+          "id": "r01",
+          "comment": "Sada, sigurno izlogovani, pokusavamo da otvorimo profil",
+          "command": "open",
+          "target": "/ski-center/profil/",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "r02",
+          "comment": "Sacekaj preusmeravanje",
+          "command": "pause",
+          "target": "1500",
+          "value": ""
+        },
+        {
+          "id": "r03",
+          "comment": "Verifikuj da smo na login formi i da postoji email polje",
+          "command": "assertElementPresent",
+          "target": "css=input[name='email']",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    },
+    {
+      "id": "e9f0a1b2-0003-4000-8000-000000000092",
+      "name": "Legalno - dodavanje staze",
+      "commands": [
+        { "id": "s01", "comment": "PREDUSLOV: seed_ssu05.py (nalog centar@skibooker.rs / lozinka123)", "command": "open", "target": "/accounts/login/", "targets": [], "value": "" },
+        { "id": "s02", "comment": "popuni i posalji login formu u jednom koraku (pouzdanije od odvojenog klika)", "command": "executeScript", "target": "var e=document.querySelector(\"[name='email']\");e.value='centar@skibooker.rs';document.querySelector(\"[name='password']\").value='lozinka123';e.form.submit();", "targets": [], "value": "" },
+        { "id": "s03", "comment": "sacekaj redirect posle prijave", "command": "pause", "target": "2000", "value": "" },
+        { "id": "s04", "comment": "otvori profil ski centra", "command": "open", "target": "/ski-center/profil/", "targets": [], "value": "" },
+        { "id": "s05", "comment": "otvori modal za dodavanje staze (direktno)", "command": "executeScript", "target": "document.getElementById('modal-slope').style.display='flex';", "targets": [], "value": "" },
+        { "id": "s06", "comment": "naziv staze", "command": "executeScript", "target": "document.querySelector(\"#modal-slope [name='name']\").value='IDE Test Staza';", "targets": [], "value": "" },
+        { "id": "s07", "comment": "duzina", "command": "executeScript", "target": "document.querySelector(\"#modal-slope [name='length_km']\").value='2.4';", "targets": [], "value": "" },
+        { "id": "s08", "comment": "tezina", "command": "executeScript", "target": "document.querySelector(\"#modal-slope [name='difficulty']\").value='plava';", "targets": [], "value": "" },
+        { "id": "s09", "comment": "sacuvaj (posalji formu u modalu)", "command": "executeScript", "target": "document.querySelector(\"#modal-slope form\").submit();", "targets": [], "value": "" },
+        { "id": "s10", "comment": "sacekaj redirect", "command": "pause", "target": "1500", "value": "" },
+        { "id": "s11", "comment": "nova staza je vidljiva na profilu", "command": "assertElementPresent", "target": "xpath=//*[contains(text(),'IDE Test Staza')]", "targets": [], "value": "" },
+        { "id": "s12", "comment": "sacekaj da se odjava izvrsi", "command": "pause", "target": "1500", "value": "" }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "e9f0a1b2-0004-4000-8000-000000000093",
+      "name": "SSU_09 Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "e9f0a1b2-0002-4000-8000-000000000091",
+        "e9f0a1b2-0003-4000-8000-000000000092"
+      ]
+    }
+  ],
+  "urls": ["http://127.0.0.1:8000"],
+  "plugins": []
+}

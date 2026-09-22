@@ -1,0 +1,162 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Registracija{% endblock %}
+
+{% block nav %}
+  <a href="{% url 'home' %}" class="nav-logo">
+    <img src="{% static 'images/logo.png' %}" alt="SkiBooker">SkiBooker
+  </a>
+  <a href="{% url 'login' %}" style="color:var(--blue);text-decoration:none;font-size:0.9rem;font-weight:500;">Već imam nalog → Prijavi se</a>
+{% endblock nav %}
+
+{% block content %}
+<div class="main">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="{% static 'images/logo.png' %}" alt="SkiBooker"><span>SkiBooker</span>
+    </div>
+    <h1>Kreiraj nalog</h1>
+    <p class="auth-sub">Izaberi tip naloga koji odgovara tebi</p>
+
+    <div class="type-selector">
+      <div class="type-option active" onclick="selectType('client', this)">
+        <span class="type-name">Klijent</span>
+        <span class="type-desc">Rezervišem časove i opremu za skijanje</span>
+      </div>
+      <div class="type-option" onclick="selectType('business', this)">
+        <span class="type-name">Poslovni korisnik</span>
+        <span class="type-desc">Ski škola, instruktor, rental firma ili ski centar</span>
+      </div>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="user_type" id="userType" value="client">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Ime</label>
+          <input type="text" name="first_name" class="form-input"
+                 value="{{ client_form.first_name.value|default:'' }}">
+          {% if client_form.first_name.errors %}
+            <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ client_form.first_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prezime</label>
+          <input type="text" name="last_name" class="form-input"
+                 value="{{ client_form.last_name.value|default:'' }}">
+          {% if client_form.last_name.errors %}
+            <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ client_form.last_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email adresa</label>
+        <input type="email" name="email" class="form-input"
+               value="{{ client_form.email.value|default:'' }}">
+        {% if client_form.email.errors %}
+          <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ client_form.email.errors.0 }}</p>
+        {% endif %}
+        {% if business_form.email.errors %}
+          <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ business_form.email.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lozinka</label>
+          <input type="password" name="password" class="form-input">
+          {% if client_form.password.errors %}
+            <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ client_form.password.errors.0 }}</p>
+          {% endif %}
+          {% if business_form.password.errors %}
+            <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ business_form.password.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Potvrdi lozinku</label>
+          <input type="password" name="confirm_password" class="form-input">
+        </div>
+      </div>
+
+      <div class="biz-fields" id="bizFields">
+        <div class="form-group">
+          <label class="form-label">Tip poslovnog korisnika</label>
+          <select name="business_type" class="form-select">
+            <option value="">Izaberi tip...</option>
+            <option value="ski_center">Ski centar</option>
+            <option value="rental">Rental firma</option>
+            <option value="ski_skola">Ski škola</option>
+            <option value="instructor">Instruktor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Naziv firme / Ski centra</label>
+          <input type="text" name="business_name" class="form-input">
+          {% if business_form.business_name.errors %}
+            <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ business_form.business_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group" id="locationField">
+          <label class="form-label">Lokacija ski centra</label>
+          <input type="text" name="location" class="form-input" placeholder="npr. Kopaonik">
+          {% if business_form.location.errors %}
+            <p style="color:#dc2626;font-size:0.82rem;margin-top:4px;">{{ business_form.location.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div class="form-group" id="skiCentarField" style="display:none;">
+          <label class="form-label">Ski centar (opciono)</label>
+          <select name="ski_centar_id" class="form-select">
+            <option value="">-- Bez ski centra --</option>
+            {% for sc in ski_centri %}
+              <option value="{{ sc.pk }}">{{ sc.business_profile.business_name }} · {{ sc.business_profile.location }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="info-box">Nakon registracije, nalog ide na odobravanje administratoru. Dobićeš obaveštenje kad nalog postane aktivan.</div>
+      </div>
+
+      {% if client_form.non_field_errors or business_form.non_field_errors %}
+      <div class="info-box" style="border-color:#f87171;background:#fef2f2;color:#b91c1c;">
+        {% for error in client_form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+        {% for error in business_form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn-submit">Kreiraj nalog</button>
+    </form>
+
+    <p class="terms">Registracijom prihvataš naše <a href="#">Uslove korišćenja</a> i <a href="#">Politiku privatnosti</a>.</p>
+    <div class="auth-switch">Već imaš nalog? <a href="{% url 'login' %}">Prijavi se</a></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer><div class="footer-bottom">© 2026 SkiBooker · Tim SnowTech</div></footer>
+{% endblock footer %}
+
+{% block extra_js %}
+<script>
+function selectType(type, el) {
+  document.querySelectorAll('.type-option').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('bizFields').classList.toggle('show', type === 'business');
+  document.getElementById('userType').value = type;
+}
+
+document.querySelector('select[name="business_type"]').addEventListener('change', function() {
+  const isSkiCenter = this.value === 'ski_center';
+  document.getElementById('locationField').style.display = isSkiCenter ? 'block' : 'none';
+  document.getElementById('skiCentarField').style.display = isSkiCenter ? 'none' : 'block';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,375 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Moj profil{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/clientProfile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+    {% if messages %}
+        {% for message in messages %}
+         <div style="padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:0.9rem;
+                    {% if message.tags == 'error' %}background:#fee2e2;color:#991b1b;{% else %}background:#d1fae5;color:#065f46;{% endif %}">
+          {{ message }}
+         </div>
+        {% endfor %}
+    {% endif %}
+
+  <div class="page-header">
+    <div class="profile-top">
+      <div class="profile-photo" style="background:linear-gradient(135deg,#4a9eff,#1a73e8);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:1.5rem;color:white;">
+        {{ client.user.first_name|first }}{{ client.user.last_name|first }}
+      </div>
+      <div style="flex:1">
+        <div class="profile-name">{{ client.user.get_full_name }}</div>
+        <div class="profile-meta">{{ client.user.email }} · Klijent</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;margin-bottom:12px;">
+          <span class="tag">SkiBooker klijent</span>
+        </div>
+        <button class="btn-outline-sm" onclick="document.getElementById('modal-edit-profile').style.display='flex'">Izmeni profil</button>
+      </div>
+      <div style="display:flex;gap:16px;align-items:stretch;">
+        <div style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 28px;text-align:center;min-width:110px;">
+          <div style="font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:800;color:var(--navy);">{{ active_bookings|length|add:active_equipment_count }}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Aktivne rezervacije</div>
+        </div>
+        <div style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 28px;text-align:center;min-width:110px;">
+          <div style="font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:800;color:var(--navy);">{{past_total}}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Završene rezervacije</div>
+        </div>
+        <div style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 28px;text-align:center;min-width:110px;">
+          <div style="font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:800;color:var(--navy);">{{ past_bookings|length}}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Odslušani časovi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    <div class="section-title">Moje rezervacije</div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="filterTab('sve', this)">Sve</button>
+      <button class="tab-btn" onclick="filterTab('aktivne', this)">Aktivne</button>
+      <button class="tab-btn" onclick="filterTab('prethodne', this)">Prethodne</button>
+    </div>
+
+    {# ── AKTIVNE: ČASOVI ─────────────────────────────────────────── #}
+    {% for booking in active_bookings %}
+    {% with slot=booking.time_slot instructor=booking.time_slot.instructor %}
+    <div class="rez-item" data-tab="aktivne">
+      <div class="rez-top">
+        <div class="rez-avatar" style="background:linear-gradient(135deg,#4a9eff,#1a73e8);">
+          {{ instructor.business_profile.user.first_name|first }}{{ instructor.business_profile.user.last_name|first }}
+        </div>
+        <div class="rez-info">
+          <div class="rez-name">
+            {{ instructor.business_profile.user.get_full_name }}
+            <span class="badge badge-cas">Čas</span>
+          </div>
+          <div class="rez-date">{{ slot.date }} · {{ slot.start_time|slice:':5' }} – {{ slot.end_time|slice:':5' }}</div>
+        </div>
+        {% if booking.status == 'ceka_potvrdu' %}
+          <span class="badge badge-pending">Na čekanju</span>
+        {% elif booking.status == 'potvrdjena' %}
+          <span class="badge badge-confirmed">Potvrđeno</span>
+        {% endif %}
+      </div>
+      <div class="rez-bottom">
+        <span style="font-size:0.82rem;color:var(--text-muted);">Cena: <b>{{ instructor.price_per_hour }} RSD</b></span>
+        <div class="rez-actions">
+          <button class="btn-primary" style="padding:8px 16px;font-size:0.82rem;"
+                  onclick="openDetalji('{{ instructor.business_profile.user.get_full_name }}', '{{ slot.date }}', '{{ slot.start_time|slice:':5' }}', '{{ slot.end_time|slice:':5' }}', '{{ booking.status }}', '{{ instructor.price_per_hour }}')">
+            Detalji
+          </button>
+          {% if booking.can_cancel %}
+          <form method="POST" action="{% url 'cancel_booking' booking.pk %}"
+                onsubmit="return confirm('Da li ste sigurni da želite da otkažete ovu rezervaciju?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-outline-sm">Otkaži</button>
+          </form>
+          {% else %}
+          <button class="btn-outline-sm" disabled title="Otkazivanje nije moguće manje od 24h pre termina">Otkaži</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+
+
+    {% for rez in active_equipment %}
+    {% with eq=rez.equipment_variant.equipment %}
+    <div class="rez-item" data-tab="aktivne">
+      <div class="rez-top">
+        <div class="rez-avatar" style="background:linear-gradient(135deg,#10b981,#059669);">
+          {{ eq.rental.business_profile.business_name|first }}
+        </div>
+        <div class="rez-info">
+          <div class="rez-name">
+            {{ eq.brand.name }} {{ eq.model }}
+            <span class="badge" style="background:#dcfce7;color:#166534;">Oprema</span>
+          </div>
+          <div class="rez-date">
+            {{ rez.start_date }} – {{ rez.end_date }} · {{ eq.rental.business_profile.business_name }}
+          </div>
+        </div>
+        {% if rez.status == 'ceka_potvrdu' %}
+          <span class="badge badge-pending">Na čekanju</span>
+        {% elif rez.status == 'potvrdjena' %}
+          <span class="badge badge-confirmed">Potvrđeno</span>
+        {% endif %}
+      </div>
+      <div class="rez-bottom">
+        <span style="font-size:0.82rem;color:var(--text-muted);">Cena: <b>{{ eq.price_per_day }} RSD/dan</b></span>
+        <div class="rez-actions">
+          <button class="btn-primary" style="padding:8px 16px;font-size:0.82rem;"
+                  onclick="openDetaljiOprema('{{ eq.brand.name }} {{ eq.model }}', '{{ eq.rental.business_profile.business_name }}', '{{ rez.start_date }}', '{{ rez.end_date }}', '{{ rez.status }}', '{{ eq.price_per_day }}')">
+            Detalji
+          </button>
+          <form method="POST" action="{% url 'cancel_equipment_reservation' rez.pk %}"
+              onsubmit="return confirm('Da li ste sigurni da želite da otkažete ovu rezervaciju?')">
+          {% csrf_token %}
+          <button type="submit" class="btn-outline-sm">Otkaži</button>
+        </form>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+
+    {% if not active_bookings and not active_equipment %}
+    <div class="card-box" data-tab="aktivne" style="text-align:center;padding:40px;">
+      <p style="color:var(--text-muted);margin-bottom:16px;">Nemate nijednu aktivnu rezervaciju.</p>
+      <a href="#" class="btn-primary">Pregledaj ski centre</a>
+    </div>
+    {% endif %}
+
+    {# ── PRETHODNE: ČASOVI ───────────────────────────────────────── #}
+    {% for booking in past_bookings %}
+    {% with slot=booking.time_slot instructor=booking.time_slot.instructor %}
+    <div class="rez-item" data-tab="prethodne">
+      <div class="rez-top">
+        <div class="rez-avatar" style="background:linear-gradient(135deg,#94a3b8,#64748b);">
+          {{ instructor.business_profile.user.first_name|first }}{{ instructor.business_profile.user.last_name|first }}
+        </div>
+        <div class="rez-info">
+          <div class="rez-name">
+            {{ instructor.business_profile.user.get_full_name }}
+            <span class="badge badge-cas">Čas</span>
+          </div>
+          <div class="rez-date">{{ slot.date }} · {{ slot.start_time|slice:':5' }} – {{ slot.end_time|slice:':5' }}</div>
+        </div>
+        {% if booking.status == 'realizovana' %}
+          <span class="badge badge-done">Realizovano</span>
+        {% elif booking.status == 'otkazana' %}
+          <span class="badge badge-cancelled">Otkazano</span>
+        {% endif %}
+      </div>
+      <div class="rez-bottom">
+        <span style="font-size:0.82rem;color:var(--text-muted);">Cena: <b>{{ instructor.price_per_hour }} RSD</b></span>
+        <div class="rez-actions">
+          <button class="btn-primary" style="padding:8px 16px;font-size:0.82rem;"
+                  onclick="openDetalji('{{ instructor.business_profile.user.get_full_name }}', '{{ slot.date }}', '{{ slot.start_time|slice:':5' }}', '{{ slot.end_time|slice:':5' }}', '{{ booking.status }}', '{{ instructor.price_per_hour }}')">
+            Detalji
+          </button>
+            {% if booking.status == 'realizovana' %}
+              {% if booking.has_review %}
+                  <span class="badge badge-done" style="display:inline-flex;align-items:center;justify-content:center;">✓ Ocenjeno</span>
+              {% else %}
+                <button type="button" class="btn-outline-sm" onclick="openReviewModal({{ booking.pk }})">Ostavi recenziju</button>
+              {% endif %}
+            {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+
+
+    {% for res in rental_reservations %}
+        <div class="rez-item" data-tab="prethodne">
+          <div class="rez-top">
+            <div class="rez-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🎿</div>
+            <div class="rez-info">
+              <div class="rez-name">
+                {{ res.equipment_variant.equipment.rental.business_profile.business_name }}
+                <span class="badge badge-cas">Oprema</span>
+              </div>
+              <div class="rez-date">{{ res.equipment_variant.equipment }} ({{ res.equipment_variant.size }}) · {{ res.start_date }} – {{ res.end_date }}</div>
+            </div>
+            <span class="badge badge-done">Realizovano</span>
+          </div>
+          <div class="rez-bottom">
+            <span style="font-size:0.82rem;color:var(--text-muted);">Količina: <b>{{ res.quantity }}</b></span>
+            <div class="rez-actions">
+              {% if res.has_review %}
+                  <span class="badge badge-done" style="display:inline-flex;align-items:center;justify-content:center;">✓ Ocenjeno</span>
+              {% else %}
+                <button type="button" class="btn-outline-sm" onclick="openRentalReviewModal({{ res.pk }})">Ostavi recenziju</button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+    {% endfor %}
+
+    {% if not past_bookings and not rental_reservations %}
+    <p class="rez-item" data-tab="prethodne" style="color:var(--text-muted);padding:20px;">Nema prethodnih rezervacija.</p>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- MODAL: DETALJI REZERVACIJE (čas) -->
+<div id="modal-detalji" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:460px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Detalji rezervacije</h3>
+    <div style="font-size:0.9rem;line-height:2.2;color:var(--text-muted);">
+      Instruktor: <b id="d-instruktor" style="color:var(--text);"></b><br>
+      Datum: <b id="d-datum" style="color:var(--text);"></b><br>
+      Vreme: <b id="d-vreme" style="color:var(--text);"></b><br>
+      Status: <b id="d-status" style="color:var(--text);"></b><br>
+      Cena: <b id="d-cena" style="color:var(--text);"></b> RSD
+    </div>
+    <div style="margin-top:24px;">
+      <button class="btn-outline-sm" onclick="document.getElementById('modal-detalji').style.display='none'">Zatvori</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETALJI REZERVACIJE (oprema) -->
+<div id="modal-detalji-oprema" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:460px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Detalji rezervacije opreme</h3>
+    <div style="font-size:0.9rem;line-height:2.2;color:var(--text-muted);">
+      Oprema: <b id="do-oprema" style="color:var(--text);"></b><br>
+      Rental firma: <b id="do-firma" style="color:var(--text);"></b><br>
+      Period: <b id="do-period" style="color:var(--text);"></b><br>
+      Status: <b id="do-status" style="color:var(--text);"></b><br>
+      Cena: <b id="do-cena" style="color:var(--text);"></b> RSD/dan
+    </div>
+    <div style="margin-top:24px;">
+      <button class="btn-outline-sm" onclick="document.getElementById('modal-detalji-oprema').style.display='none'">Zatvori</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RECENZIJA (SSU_08) -->
+<div id="modal-review" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:440px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Ostavi recenziju</h3>
+    <form method="POST" id="review-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Ocena</label>
+        <div id="star-rating" style="font-size:1.9rem;color:#ddd;cursor:pointer;user-select:none;line-height:1;">
+          <span data-value="1">★</span><span data-value="2">★</span><span data-value="3">★</span><span data-value="4">★</span><span data-value="5">★</span>
+        </div>
+        <input type="hidden" name="rating" id="rating-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Komentar (opciono)</label>
+        <textarea name="comment" class="form-input" rows="3" style="resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button type="submit" class="btn-primary">Pošalji</button>
+        <button type="button" class="btn-outline-sm" onclick="document.getElementById('modal-review').style.display='none'">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: IZMENI PROFIL -->
+<div id="modal-edit-profile" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:460px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Izmeni profil</h3>
+    <form method="POST" action="#">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Ime</label>
+        <input class="form-input" name="first_name" value="{{ client.user.first_name }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prezime</label>
+        <input class="form-input" name="last_name" value="{{ client.user.last_name }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" name="email" value="{{ client.user.email }}">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button type="submit" class="btn-primary">Sačuvaj</button>
+        <button type="button" class="btn-outline-sm" onclick="document.getElementById('modal-edit-profile').style.display='none'">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterTab(f, btn) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[data-tab]').forEach(el => {
+    el.style.display = (f === 'sve' || el.dataset.tab === f) ? 'block' : 'none';
+  });
+}
+
+function openRentalReviewModal(pk){
+    document.getElementById('review-form').action = '/review/rental/' + pk + '/';
+    document.getElementById('modal-review').style.display = 'flex';
+}
+
+function openReviewModal(pk){
+    document.getElementById('review-form').action = '/review/instructor/' + pk + '/';
+    document.getElementById('modal-review').style.display = 'flex';
+}
+
+const statusMap = {
+  'ceka_potvrdu': 'Na čekanju',
+  'potvrdjena': 'Potvrđena',
+  'realizovana': 'Realizovana',
+  'otkazana': 'Otkazana',
+  'odbijena': 'Odbijena'
+};
+
+function openDetalji(instruktor, datum, start, end, status, cena) {
+  document.getElementById('d-instruktor').textContent = instruktor;
+  document.getElementById('d-datum').textContent = datum;
+  document.getElementById('d-vreme').textContent = start + ' – ' + end;
+  document.getElementById('d-status').textContent = statusMap[status] || status;
+  document.getElementById('d-cena').textContent = cena;
+  document.getElementById('modal-detalji').style.display = 'flex';
+}
+
+function openDetaljiOprema(oprema, firma, start, end, status, cena) {
+  document.getElementById('do-oprema').textContent = oprema;
+  document.getElementById('do-firma').textContent = firma;
+  document.getElementById('do-period').textContent = start + ' – ' + end;
+  document.getElementById('do-status').textContent = statusMap[status] || status;
+  document.getElementById('do-cena').textContent = cena;
+  document.getElementById('modal-detalji-oprema').style.display = 'flex';
+}
+
+const stars = document.querySelectorAll('#star-rating span');
+function paintStars(val) {
+  stars.forEach(s => s.style.color = (Number(s.dataset.value) <= val) ? '#f59e0b' : '#ddd');
+}
+stars.forEach(star => {
+  star.addEventListener('mouseover', () => paintStars(Number(star.dataset.value)));
+  star.addEventListener('click', () => {
+    document.getElementById('rating-input').value = star.dataset.value;
+    paintStars(Number(star.dataset.value));
+  });
+});
+document.getElementById('star-rating').addEventListener('mouseleave', () => {
+  paintStars(Number(document.getElementById('rating-input').value) || 0);
+});
+
+</script>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Ski centri{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/skiCentersList.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <div class="page-hero">
+    <h1>Ski centri</h1>
+    <p>Pronađi savršen ski centar za tvoju avanturu na snegu</p>
+  </div>
+
+  <div class="filters-bar">
+    <form method="GET" action="{% url 'ski_centri_lista' %}">
+      <div class="filters-grid">
+        <div>
+          <label class="form-label">Pretraga</label>
+          <input class="form-input" name="q" placeholder="Naziv ili lokacija ski centra..." value="{{ request.GET.q }}">
+        </div>
+        <div>
+          <label class="form-label">Sortiraj</label>
+          <select class="form-select" name="sort">
+            <option value="">Podrazumevano</option>
+            <option value="naziv_asc" {% if request.GET.sort == 'naziv_asc' %}selected{% endif %}>Po imenu – rastuće</option>
+            <option value="naziv_desc" {% if request.GET.sort == 'naziv_desc' %}selected{% endif %}>Po imenu – opadajuće</option>
+            <option value="ocena_desc" {% if request.GET.sort == 'ocena_desc' %}selected{% endif %}>Po oceni – opadajuće</option>
+            <option value="ocena_asc" {% if request.GET.sort == 'ocena_asc' %}selected{% endif %}>Po oceni – rastuće</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <button type="submit" class="btn-search">Pretraži</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- MAPA -->
+  <div class="map-section">
+    <div id="map"></div>
+  </div>
+
+  <div class="list-wrap">
+    <div class="list-header">
+      <span class="list-count">Pronađeno <strong>{{ ski_centri|length }}</strong> ski centara</span>
+    </div>
+
+    {% for centar in ski_centri %}
+    <div class="sc-row">
+      <div class="sc-photo-placeholder">
+        {% if centar.logo %}
+          <img src="{{ centar.logo.url }}" alt="{{ centar.business_profile.business_name }}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">
+        {% else %}
+          {{ centar.business_profile.business_name|first }}
+        {% endif %}
+      </div>
+      <div class="sc-info">
+        <h3><a href="{% url 'ski_centar_detalj' centar.pk %}">{{ centar.business_profile.business_name }}</a></h3>
+        <div class="sc-meta">
+          {{ centar.business_profile.location }}
+          {% if centar.contact_phone %} · {{ centar.contact_phone }}{% endif %}
+        </div>
+        <div class="sc-tags">
+          {% with staze=centar.slopes.all %}
+            {% if staze %}<span class="tag">{{ staze|length }} staza</span>{% endif %}
+          {% endwith %}
+          {% with liftovi=centar.lifts.all %}
+            {% if liftovi %}<span class="tag">{{ liftovi|length }} liftova</span>{% endif %}
+          {% endwith %}
+          {% if centar.ski_schools.exists %}<span class="tag">Ski škola</span>{% endif %}
+        </div>
+        <div class="sc-stats">
+          {% if centar.description %}
+            <span class="sc-stat">{{ centar.description|truncatewords:12 }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="sc-right">
+        <div>
+          {% if centar.avg_rating %}
+            <div class="rating-big">★ {{ centar.avg_rating|floatformat:1 }}</div>
+            <div class="rating-sub">{{ centar.review_count }} ocena</div>
+          {% else %}
+            <div class="rating-big" style="color:var(--text-muted);font-size:0.9rem;">Nema ocena</div>
+          {% endif %}
+        </div>
+        <a href="{% url 'ski_centar_detalj' centar.pk %}" class="btn-book">Pogledaj centar</a>
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:60px;color:var(--text-muted);">
+      <p style="font-size:1.1rem;margin-bottom:12px;">Nema pronađenih ski centara koji odgovaraju zadatim kriterijumima.</p>
+      <a href="{% url 'ski_centri_lista' %}" style="color:var(--blue);">Poništi filtere</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([43.5, 20.9], 7);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  const centri = [
+    {% for centar in ski_centri %}
+      {% if centar.latitude and centar.longitude %}
+      {
+        lat: {{ centar.latitude }},
+        lng: {{ centar.longitude }},
+        naziv: "{{ centar.business_profile.business_name }}",
+        lokacija: "{{ centar.business_profile.location }}",
+        ocena: "{% if centar.avg_rating %}★ {{ centar.avg_rating|floatformat:1 }}{% else %}Nema ocena{% endif %}",
+        url: "{% url 'ski_centar_detalj' centar.pk %}"
+      },
+      {% endif %}
+    {% endfor %}
+  ];
+
+  centri.forEach(c => {
+    L.marker([c.lat, c.lng])
+      .addTo(map)
+      .bindPopup(`
+        <b>${c.naziv}</b><br>
+        ${c.lokacija}<br>
+        ${c.ocena}<br>
+        <a href="${c.url}" style="color:#1a73e8;font-weight:600;">Pogledaj centar →</a>
+      `);
+  });
+</script>
+{% endblock %}

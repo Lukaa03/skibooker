@@ -1,0 +1,213 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – {{ instructor.business_profile.user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/instructorPublicProfile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <div class="prof-hero">
+    <div class="prof-photo">
+      {% if instructor.photo %}
+        <img src="{{ instructor.photo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">
+      {% else %}
+        {{ instructor.business_profile.user.first_name|first }}{{ instructor.business_profile.user.last_name|first }}
+      {% endif %}
+    </div>
+    <div class="prof-info">
+      <div class="breadcrumb">
+        <a href="{% url 'home' %}">Početna</a> /
+        <a href="{% url 'instructors_list' %}">Instruktori</a> /
+        {{ instructor.business_profile.user.get_full_name }}
+      </div>
+      <h1>{{ instructor.business_profile.user.get_full_name }}</h1>
+      <div class="prof-meta">
+        {{ instructor.business_profile.location }}
+        {% if instructor.ski_center %} · {{ instructor.ski_center.business_profile.business_name }}{% endif %}
+        · {{ instructor.years_of_experience }} godina iskustva
+      </div>
+      <div class="prof-tags">
+        {% if instructor.specialization %}<span class="prof-tag">{{ instructor.get_specialization_display }}</span>{% endif %}
+        {% if instructor.languages %}<span class="prof-tag">{{ instructor.languages }}</span>{% endif %}
+      </div>
+      <div class="prof-stats">
+        <div class="prof-stat"><div class="val">{{ instructor.years_of_experience }}</div><div class="lbl">God. iskustva</div></div>
+        <div class="prof-stat"><div class="val">{{ free_slots.count }}</div><div class="lbl">Slobodnih termina</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+
+    <!-- LEVO: INFO -->
+    <div>
+      <div class="card-box">
+        <div class="section-title">O instruktoru</div>
+        {% if instructor.bio %}
+          <p style="font-size:0.9rem;color:var(--text-muted);line-height:1.75;">{{ instructor.bio }}</p>
+        {% else %}
+          <p style="font-size:0.9rem;color:var(--text-muted);">Nema opisa.</p>
+        {% endif %}
+        <hr class="divider">
+        <ul class="info-list">
+          <li><span class="info-key">Lokacija</span><span>{{ instructor.business_profile.location }}</span></li>
+          {% if instructor.ski_center %}<li><span class="info-key">Ski centar</span><span>{{ instructor.ski_center.business_profile.business_name }}</span></li>{% endif %}
+          {% if instructor.ski_school %}<li><span class="info-key">Ski škola</span><span>{{ instructor.ski_school.business_profile.business_name }}</span></li>{% endif %}          {% if instructor.specialization %}<li><span class="info-key">Specijalizacija</span><span>{{ instructor.get_specialization_display }}</span></li>{% endif %}
+          {% if instructor.languages %}<li><span class="info-key">Jezici</span><span>{{ instructor.languages }}</span></li>{% endif %}
+          {% if instructor.qualifications %}<li><span class="info-key">Kvalifikacije</span><span>{{ instructor.qualifications }}</span></li>{% endif %}
+        </ul>
+      </div>
+
+      <div class="card-box">
+        <div class="section-title">Recenzije korisnika · ★ {{ avg_rating|floatformat:1|default:"N/A" }}</div>
+            {% for review in reviews %}
+            <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                <div style="font-weight:600;font-size:0.88rem;">{{ review.reviewer.user.get_full_name }}</div>
+                <span style="color:var(--gold);font-size:0.78rem;">{% for i in review.stars_range %}★{% endfor %}</span>
+                <span style="font-size:0.78rem;color:var(--text-muted);margin-left:auto;">{{ review.created_at|date:"d. M Y." }}</span>
+              </div>
+              <p style="font-size:0.86rem;color:var(--text-muted);">{{ review.comment }}</p>
+            </div>
+            {% empty %}
+            <p style="color:var(--text-muted);font-size:0.88rem;">Nema recenzija.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- DESNO: BOOKING CARD -->
+    <div>
+      <div class="booking-card">
+        <div class="price-line">
+          <span class="price-big">{{ instructor.price_per_hour }} RSD</span>
+          <span class="price-sub">/ čas (60 min)</span>
+        </div>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div style="padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;
+                        {% if message.tags == 'error' %}background:#fee2e2;color:#991b1b;{% else %}background:#d1fae5;color:#065f46;{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if free_slots %}
+          <div class="section-title" style="font-size:0.95rem;margin-bottom:12px;">Slobodni termini</div>
+          <form method="POST" action="#" id="booking-form">
+            {% csrf_token %}
+            <div class="avail-grid">
+              {% for slot in free_slots %}
+              <div class="avail-slot" data-slot-id="{{ slot.pk }}"
+                   onclick="selectSlot(this, {{ slot.pk }}, '{{ slot.date }}', '{{ slot.start_time|slice:':5' }}', '{{ slot.end_time|slice:':5' }}')">
+                <div style="font-weight:600;">{{ slot.start_time|slice:':5' }}</div>
+                <div style="font-size:0.72rem;color:inherit;opacity:0.75;">{{ slot.date }}</div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div id="booking-summary" style="display:none;background:var(--off-white);border-radius:8px;padding:14px;margin:16px 0;font-size:0.85rem;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="color:var(--text-muted);">Termin</span>
+                <span id="summary-slot"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;padding-top:8px;border-top:1px solid var(--border);">
+                <span>Ukupno</span>
+                <span>{{ instructor.price_per_hour }} RSD</span>
+              </div>
+            </div>
+
+            {% if user.is_authenticated %}
+              <button type="button" id="btn-book" onclick="confirmBooking()"
+                      class="btn-primary"
+                      style="display:block;width:100%;text-align:center;opacity:0.5;cursor:not-allowed;"
+                      disabled>
+                Rezerviši čas
+              </button>
+            {% else %}
+              <a href="{% url 'login' %}?next={{ request.path }}"
+                 class="btn-primary" style="display:block;width:100%;text-align:center;">
+                Prijavi se da rezervišeš
+              </a>
+              <p style="font-size:0.78rem;color:var(--text-muted);text-align:center;margin-top:10px;">
+                Moraš biti prijavljen/a da bi rezervisao/la čas.
+              </p>
+            {% endif %}
+          </form>
+        {% else %}
+          <div style="text-align:center;padding:30px 0;color:var(--text-muted);">
+            <p>Nema slobodnih termina.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: POTVRDA REZERVACIJE -->
+<div id="modal-confirm" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:440px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:16px;">Pregled rezervacije</h3>
+    <div style="font-size:0.9rem;line-height:2.2;color:var(--text-muted);margin-bottom:20px;">
+      Instruktor: <b style="color:var(--text);">{{ instructor.business_profile.user.get_full_name }}</b><br>
+      Termin: <b id="confirm-slot" style="color:var(--text);"></b><br>
+      Cena: <b style="color:var(--text);">{{ instructor.price_per_hour }} RSD</b>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:20px;">
+      Rezervacija će biti poslata instruktoru na potvrdu.
+    </p>
+    <div style="display:flex;gap:12px;">
+      <button type="button" class="btn-primary" onclick="submitBooking()">
+        Potvrdi rezervaciju
+      </button>
+      <button type="button" class="btn-outline-sm"
+              onclick="document.getElementById('modal-confirm').style.display='none'">
+        Otkaži
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var selectedSlotId = null;
+var selectedSlotText = '';
+
+function selectSlot(el, slotId, date, start, end) {
+  document.querySelectorAll('.avail-slot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSlotId = slotId;
+  selectedSlotText = date + ' · ' + start + ' – ' + end;
+
+  document.getElementById('summary-slot').textContent = selectedSlotText;
+  document.getElementById('booking-summary').style.display = 'block';
+
+  var btn = document.getElementById('btn-book');
+  if (btn) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  }
+}
+
+function confirmBooking() {
+  if (!selectedSlotId) return;
+  document.getElementById('confirm-slot').textContent = selectedSlotText;
+  document.getElementById('modal-confirm').style.display = 'flex';
+}
+
+function submitBooking() {
+  var form = document.getElementById('booking-form');
+  form.action = '/slot/' + selectedSlotId + '/book/';
+  document.getElementById('modal-confirm').style.display = 'none';
+  form.submit();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+<!-- Base template — nasleđuju svi ostali template-ovi -->
+
+<!DOCTYPE html>
+{% load static %}
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SkiBooker{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'styles/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  {% block nav %}
+    <a href="{% url 'home' %}" class="nav-logo">
+      <img src="{% static 'images/logo.png' %}" alt="SkiBooker">SkiBooker
+    </a>
+    <ul class="nav-links">
+      <li><a href="{% url 'ski_centri_lista' %}">Ski centri</a></li>
+      <li><a href="{% url 'instructors_list' %}">Instruktori</a></li>
+      <li><a href="{% url 'rental_list' %}">Oprema</a></li>
+    </ul>
+    <div class="nav-right">
+      {% if user.is_authenticated %}
+        <span class="nav-user">Zdravo, {{ user.first_name }}</span>
+        {% if user.is_superuser %}
+          <a href="{% url 'admin_statistics' %}" class="nav-btn-outline">Admin panel</a>
+        {% elif user_business_type == 'ski_center' %}
+          <a href="{% url 'ski_center_profile' %}" class="nav-btn-outline">Moj profil</a>
+        {% elif user_business_type == 'instructor' %}
+          <a href="{% url 'instructor_profile' %}" class="nav-btn-outline">Moj profil</a>
+        {% elif user_business_type == 'rental' %}
+          <a href="{% url 'rental_profile' %}" class="nav-btn-outline">Moj profil</a>
+        {% elif user_business_type == 'ski_skola' %}
+          <a href="{% url 'ski_school_profile' %}" class="nav-btn-outline">Moj profil</a>
+        {% else %}
+          <a href="{% url 'client_profile' %}" class="nav-btn-outline">Moj profil</a>
+        {% endif %}
+        <form method="POST" action="{% url 'logout' %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="nav-cta">Odjavi se</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}" class="nav-btn-outline">Prijavi se</a>
+        <a href="{% url 'register' %}" class="nav-cta">Registruj se</a>
+      {% endif %}
+    </div>
+  {% endblock nav %}
+</nav>
+
+<!-- MESSAGES -->
+{% if messages %}
+  <div class="alert-bar">
+    {% for message in messages %}
+      <div class="alert-{{ message.tags }}">
+        {{ message }}
+        <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<!-- SADRŽAJ -->
+{% block content %}{% endblock %}
+
+<!-- FOOTER -->
+{% block footer %}
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo-row">
+        <img src="{% static 'images/logo.png' %}" alt="" style="height:34px;">
+        <span class="footer-brand-name">SkiBooker</span>
+      </div>
+      <p class="footer-tagline">Manje planiranja, više skijanja.</p>
+    </div>
+    <div class="footer-col"><h4>Za klijente</h4><ul>
+      <li><a href="{% url 'ski_centri_lista' %}">Ski centri</a></li>
+      <li><a href="{% url 'instructors_list' %}">Instruktori</a></li>
+      <li><a href="{% url 'rental_list' %}">Oprema</a></li>
+      <li><a href="{% url 'client_profile' %}">Moje rezervacije</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Za partnere</h4><ul>
+      <li><a href="{% url 'register' %}">Registruj biznis</a></li>
+      <li><a href="{% url 'instructors_list' %}">Instruktori</a></li>
+      <li><a href="{% url 'rental_list' %}">Rental firma</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Kontakt</h4><ul>
+      <li><a href="#">Kontakt</a></li>
+      <li><a href="#">Podrška</a></li>
+      <li><a href="#">FAQ</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Uslovi</h4><ul>
+      <li><a href="#">Uslovi korišćenja</a></li>
+      <li><a href="#">Privatnost</a></li>
+      <li><a href="#">Kolačići</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom">© 2026 SkiBooker · Tim SnowTech · ETF Beograd. Sva prava zadržana.</div>
+</footer>
+{% endblock footer %}
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

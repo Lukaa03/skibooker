@@ -1,0 +1,294 @@
+/* SkiBooker — Rental equipment page */
+
+.main {
+    display: block;
+    padding: 68px 0 0;
+}
+
+/* HERO */
+
+.page-hero {
+    background: var(--navy);
+    padding: 52px 52px 48px;
+    color: var(--white);
+}
+
+.breadcrumb {
+    margin-bottom: 10px;
+    font-size: .8rem;
+    color: rgba(255,255,255,.45);
+}
+
+.breadcrumb a{
+    color: rgba(255,255,255,.45);
+    text-decoration:none;
+}
+
+.breadcrumb a:hover{
+    color:#fff;
+}
+
+.page-hero h1{
+    font-family:'Sora',sans-serif;
+    font-size:2.2rem;
+    font-weight:800;
+    margin-bottom:8px;
+}
+
+.page-hero p{
+    color:rgba(255,255,255,.6);
+    font-size:.95rem;
+}
+
+/* FILTERS */
+
+.filters-bar{
+    background:#fff;
+    border-bottom:1px solid var(--border);
+    padding:24px 52px;
+}
+
+.filters-grid{
+    display:grid;
+    grid-template-columns: 10fr 3fr auto;
+    gap:10px;
+    align-items:end;
+}
+
+.form-label{
+    display:block;
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--text-muted);
+    margin-bottom:5px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+}
+
+.btn-search{
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    padding:12px 22px;
+    border-radius:var(--radius-sm);
+    font-family:'DM Sans',sans-serif;
+    font-size:.9rem;
+    font-weight:600;
+    cursor:pointer;
+    width:100%;
+}
+
+.btn-search:hover{
+    background:#1565d8;
+}
+
+/* LIST */
+
+.list-wrap{
+    padding:0 52px 60px;
+}
+
+.rental-header{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:20px;
+    align-items:center;
+    padding:32px 0 22px;
+    border-bottom:1px solid var(--border);
+}
+
+.profile-logo-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--radius);
+        flex-shrink: 0;
+        border: 2px solid var(--border);
+        background: var(--navy);
+        color: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Sora", sans-serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+    }
+
+.rental-hname{
+    font-family:'Sora',sans-serif;
+    font-size:1.3rem;
+    font-weight:800;
+    margin-bottom:4px;
+}
+
+.rental-hmeta{
+    font-size:.85rem;
+    color:var(--text-muted);
+}
+
+.stars{
+    color:#f5b400;
+    font-weight:700;
+}
+
+.btn-outline{
+    display:inline-block;
+    padding:11px 24px;
+    border-radius:var(--radius-sm);
+    border:1.5px solid var(--navy);
+    color:var(--navy);
+    text-decoration:none;
+    font-weight:600;
+    transition:.2s;
+}
+
+.btn-outline:hover{
+    background:var(--navy);
+    color:#fff;
+}
+
+/* EQUIPMENT */
+
+.equip-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+    padding:28px 0 48px;
+}
+
+.equip-card{
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:#fff;
+    transition:.25s;
+    display:flex;
+    flex-direction:column;
+}
+
+.equip-card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-lg);
+}
+
+.equip-img{
+    height:180px;
+    overflow:hidden;
+    background:#eef3f8;
+}
+
+.equip-img img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:.35s;
+}
+
+.equip-card:hover img{
+    transform:scale(1.05);
+}
+
+.equip-body{
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+}
+
+.equip-name{
+    font-family:'Sora',sans-serif;
+    font-weight:800;
+    font-size:1rem;
+    margin-bottom:5px;
+}
+
+.equip-meta{
+    font-size:.83rem;
+    color:var(--text-muted);
+    margin-bottom:10px;
+}
+
+.tag{
+    display:inline-block;
+    padding:4px 12px;
+    border:1px solid var(--border);
+    border-radius:20px;
+    font-size:.74rem;
+    color:var(--text-muted);
+    margin-bottom:16px;
+}
+
+.equip-footer{
+    margin-top:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-top:1px solid var(--border);
+    padding-top:14px;
+}
+
+.equip-price{
+    font-family:'Sora',sans-serif;
+    font-size:1.1rem;
+    font-weight:800;
+    color:var(--blue);
+}
+
+.btn-book{
+    display:inline-block;
+    background:var(--navy);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:var(--radius-sm);
+    text-decoration:none;
+    font-weight:600;
+    transition:.2s;
+}
+
+.btn-book:hover{
+    background:var(--navy-mid);
+}
+
+/* EMPTY */
+
+.empty-state{
+    padding:80px 0;
+    text-align:center;
+    color:var(--text-muted);
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1100px){
+
+    .filters-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .equip-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:700px){
+
+    .page-hero,
+    .filters-bar,
+    .list-wrap{
+        padding-left:20px;
+        padding-right:20px;
+    }
+
+    .filters-grid{
+        grid-template-columns:1fr;
+    }
+
+    .equip-grid{
+        grid-template-columns:1fr;
+    }
+
+    .rental-header{
+        grid-template-columns:1fr;
+    }
+
+}

@@ -1,0 +1,115 @@
+{
+  "id": "c87c14da-08e6-43b1-995e-9dc58ac846bc",
+  "version": "2.0",
+  "name": "skiBooker",
+  "url": "http://127.0.0.1:8000",
+  "tests": [{
+    "id": "044d3ac3-bfd0-4d24-a1e1-36269809cf1c",
+    "name": "ssu4 - pregled profila Instruktora",
+    "commands": [{
+      "id": "54541b78-975f-462a-bc53-dc9ccb01a2dd",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "de6a6eaf-aa20-4c06-89c2-1e6a45fddd0d",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Instruktori",
+      "targets": [
+        ["linkText=Instruktori", "linkText"],
+        ["css=.nav-links > li:nth-child(2) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Instruktori')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/instructor/')]", "xpath:href"],
+        ["xpath=//li[2]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Instruktori')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "d500538b-19fa-4570-8c62-886a897405ec",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Marko Petrović",
+      "targets": [
+        ["linkText=Marko Petrović", "linkText"],
+        ["css=.instr-row:nth-child(2) > .instr-info a", "css:finder"],
+        ["xpath=//a[contains(text(),'Marko Petrović')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/instructor/1/')]", "xpath:href"],
+        ["xpath=//h3/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Marko Petrović')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "e4422c6d-9f8a-4fd0-875d-0ae89daea74b",
+    "name": "ssu4 - pregled profila rental firme",
+    "commands": [{
+      "id": "31c4ed31-dc3a-4b89-ad3b-b88ba9d78b69",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "32728b6d-6fb1-42bc-8d9f-edcb93cd3564",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Oprema",
+      "targets": [
+        ["linkText=Oprema", "linkText"],
+        ["css=.nav-links > li:nth-child(3) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Oprema')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/rental/')]", "xpath:href"],
+        ["xpath=//li[3]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Oprema')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "c457cac7-7874-474b-b977-de040cab5f8e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.rental-header:nth-child(1) .rental-hname",
+      "targets": [
+        ["css=.rental-header:nth-child(1) .rental-hname", "css:finder"],
+        ["xpath=//div[2]/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "babbce6a-2538-4158-a8ca-9062b95a3eac",
+      "comment": "",
+      "command": "click",
+      "target": "css=.rental-header:nth-child(1) > .profile-logo-placeholder",
+      "targets": [
+        ["css=.rental-header:nth-child(1) > .profile-logo-placeholder", "css:finder"],
+        ["xpath=//div[3]/div/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0298fe1e-46d5-4bb6-93dd-bc8e5d57091d",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Vidi profil",
+      "targets": [
+        ["linkText=Vidi profil", "linkText"],
+        ["css=.rental-header:nth-child(1) > .btn-outline", "css:finder"],
+        ["xpath=//a[contains(text(),'Vidi profil')]", "xpath:link"],
+        ["xpath=//a[contains(@href, '/rental/2/')]", "xpath:href"],
+        ["xpath=//div[3]/div/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Vidi profil')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "c0fb966a-7f3b-4103-815b-98e31e86973c",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": []
+  }],
+  "urls": ["http://127.0.0.1:8000/"],
+  "plugins": []
+}

@@ -1,0 +1,101 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}
+Rezervacija uspešna | SkiBooker
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/reservation_success.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<main class="main">
+
+    <div class="success-modal">
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <h1 class="success-title">
+            Zahtev je uspešno poslat!
+        </h1>
+
+        <p class="success-subtitle">
+            Tvoj zahtev je prosleđen rental firmi.
+            Nakon potvrde firme biće prikazan među tvojim rezervacijama.
+        </p>
+
+        <div class="summary-card">
+
+            <div class="summary-row">
+                <span>Oprema</span>
+                <strong>
+                    {{ reservation.equipment_variant.equipment.brand.name }}
+                    {{ reservation.equipment_variant.equipment.model }}
+                </strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Rental firma</span>
+                <strong>
+                    {{ reservation.equipment_variant.equipment.rental.business_profile.business_name }}
+                </strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Veličina</span>
+                <strong>{{ reservation.equipment_variant.size }}</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Količina</span>
+                <strong>{{ reservation.quantity }}</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Period</span>
+                <strong>
+                    {{ reservation.start_date }}
+                    -
+                    {{ reservation.end_date }}
+                </strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Status</span>
+
+                <span class="status-badge">
+                    Čeka potvrdu
+                </span>
+            </div>
+
+        </div>
+
+        <div class="success-actions">
+
+            <a
+                href="{% url 'client_profile' %}"
+                class="btn-blue">
+
+                Moje rezervacije
+
+            </a>
+
+            <a
+                href="{% url 'rental_list' %}"
+                class="btn-outline-sm">
+
+                Nastavi pretragu
+
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+{% endblock %}

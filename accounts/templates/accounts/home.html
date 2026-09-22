@@ -1,0 +1,212 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Manje planiranja, više skijanja{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">&nbsp;Platforma za ski rezervacije br. 1 u regionu</div>
+    <h1>Manje planiranja,<br>više skijanja.</h1>
+    <div class="hero-actions">
+      <a href="{% url 'ski_centri_lista' %}" class="hero-btn">Pretraži ski centre →</a>
+      <a href="{% url 'instructors_list' %}" class="hero-btn-ghost">Pronađi instruktora</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">120+</div><div class="stat-lbl">Ski centara</div></div>
+  <div class="stat-item"><div class="stat-num">500+</div><div class="stat-lbl">Instruktora</div></div>
+  <div class="stat-item"><div class="stat-num">10.000+</div><div class="stat-lbl">Uspešnih rezervacija</div></div>
+  <div class="stat-item"><div class="stat-num">★ 4.8</div><div class="stat-lbl">Prosečna ocena</div></div>
+</div>
+
+<!-- SKI CENTRI -->
+<section class="section" id="ski-centri">
+  <div class="section-row">
+    <div class="section-header" style="margin-bottom:0">
+      <h2>Najpopularniji ski centri</h2>
+      <p>Pronađi savršenu destinaciju za tvoje sledeće skijanje</p>
+    </div>
+    <a href="{% url 'ski_centri_lista' %}" class="link-more">Vidi sve ski centre →</a>
+  </div>
+  <br>
+  <div class="filter-tabs">
+    <button class="tab active" onclick="setTab(this)">Svi centri</button>
+    <button class="tab" onclick="setTab(this)">Srbija</button>
+    <button class="tab" onclick="setTab(this)">Bosna i Hercegovina</button>
+    <button class="tab" onclick="setTab(this)">Slovenija</button>
+    <button class="tab" onclick="setTab(this)">Bugarska</button>
+    <button class="tab" onclick="setTab(this)">Austrija</button>
+  </div>
+  <div class="cards-grid">
+    {% for sc in ski_centri %}
+    <div class="card">
+      <div class="card-img">
+            {% if sc.photo %}
+              <img src="{{ sc.photo.url }}" alt="{{ sc.business_profile.business_name }}">
+            {% else %}
+              <div style="width:100%;height:100%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:2rem;">⛷</div>
+            {% endif %}
+            {% with open_slopes=sc.slopes.all %}
+              {% if open_slopes %}
+                <span class="badge-top-l open-badge">Otvoreno</span>
+              {% else %}
+                <span class="badge-top-l closed-badge">Zatvoreno</span>
+              {% endif %}
+            {% endwith %}
+          </div>
+          <div class="card-body">
+            <div class="card-title">{{ sc.business_profile.business_name }}</div>
+            <div class="card-meta">
+              {{ sc.slopes.count }} staza · {{ sc.lifts.count }} žičara
+              {% if sc.business_profile.location %} · {{ sc.business_profile.location }}{% endif %}
+            </div>
+            <div class="card-tags">
+              <span class="tag">Časovi</span>
+              <span class="tag">Oprema</span>
+            </div>
+            <hr class="card-divider">
+            <div class="card-info">
+              {% if sc.description %}
+                <span style="font-size:0.85rem;color:var(--text-muted);">{{ sc.description|truncatechars:40 }}</span>
+              {% endif %}
+            </div>
+            <a href="{% url 'ski_center_public_profile' sc.pk %}" class="btn-card">Vidi detalje</a>
+          </div>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted);">Nema registrovanih ski centara.</p>
+        {% endfor %}
+      </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section how-section">
+    <div class="section-header">
+      <h2>Kako funkcioniše?</h2>
+      <p>Rezerviši sve što ti treba za skijanje u 3 jednostavna koraka</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Izaberi ski centar</h3>
+        <p>Pretraži ski centre po lokaciji, dostupnosti staza, oceni ili popularnosti i pronađi idealnu destinaciju.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Pronađi instruktora ili opremu</h3>
+        <p>Pogledaj dostupne instruktore i opremu u izabranom centru i izaberi prema ocenama i ceni.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Rezerviši i kreni na stazu</h3>
+        <p>Potvrdi rezervaciju u par klikova i uživaj bez čekanja i dogovara na licu mesta.</p>
+      </div>
+    </div>
+</section>
+
+<!-- INSTRUKTORI -->
+<section class="section">
+  <div class="section-row">
+    <div>
+      <h2 style="font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:700;margin-bottom:5px;">Instruktori sa najboljim ocenama</h2>
+      <p style="font-size:0.9rem;color:var(--text-muted);">Provereni instruktori sa vrhunskim ocenama — zakaži čas bez komplikacija</p>
+    </div>
+    <a href="{% url 'instructors_list' %}" class="link-more">Vidi sve instruktore →</a>
+  </div>
+  <br>
+  <div class="instr-grid">
+    {% for instructor in instruktori %}
+    <a href="{% url 'instructor_public_profile' instructor.pk %}" class="instr-card" style="text-decoration:none;color:inherit;">
+      <div class="instr-head">
+        {% if instructor.photo %}
+          <img src="{{ instructor.photo.url }}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
+        {% else %}
+          <div class="avatar av-blue">
+            {{ instructor.business_profile.user.first_name|first }}{{ instructor.business_profile.user.last_name|first }}
+          </div>
+        {% endif %}
+        <div>
+          <div class="instr-name">{{ instructor.business_profile.user.get_full_name }}</div>
+          <div class="instr-location">{{ instructor.business_profile.location }}</div>
+        </div>
+      </div>
+      <div class="instr-tags">
+        {% if instructor.specialization %}<span class="tag">{{ instructor.get_specialization_display }}</span>{% endif %}
+        {% if instructor.languages %}
+          {% for lang in instructor.languages.split %}
+            <span class="tag">{{ lang }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div class="instr-footer">
+        <span class="price">{{ instructor.price_per_hour }} RSD/čas</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+
+<section class="testimonials">
+  <h2>Šta kažu naši korisnici</h2>
+  <div class="testi-grid">
+    {% for review in reviews %}
+    <div class="testi-card">
+      <div class="testi-stars">
+        {% for i in review.stars_range %}★{% endfor %}{% if review.rating < 5 %}{% for i in "12345"|slice:review.rating %}☆{% endfor %}{% endif %}
+      </div>
+      <p class="testi-text">"{{ review.comment }}"</p>
+      <div class="testi-author">
+        <div class="avatar av-blue" style="width:36px;height:36px;font-size:0.75rem;">
+          {{ review.reviewer.user.first_name|first }}{{ review.reviewer.user.last_name|first }}
+        </div>
+        <div>
+          <div class="testi-name">{{ review.reviewer.user.first_name }} {{ review.reviewer.user.last_name|first }}.</div>
+          <div class="testi-city">
+            {% if review.instructor %}{{ review.instructor.business_profile.location }}
+            {% elif review.ski_center %}{{ review.ski_center.business_profile.location }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);text-align:center;">Još nema recenzija.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+{% if not user.is_authenticated %}
+<div class="cta-banner">
+  <div>
+    <h3>Imaš ski školu, rental firmu ili si instruktor?</h3>
+    <p>Predstavi svoju ponudu hiljadama korisnika i upravljaj rezervacijama na jednom mestu.</p>
+  </div>
+  <a href="{% url 'register' %}" class="btn-cta">Pridruži se platformi →</a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,350 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}SkiBooker – Moj profil – Ski centar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles/skiCenterProfile.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <!-- HEADER PROFILA -->
+  <div class="page-header">
+    <div class="profile-top">
+      {% if ski_center.photo %}
+        <img src="{{ ski_center.photo.url }}" style="width:80px;height:80px;border-radius:var(--radius);object-fit:cover;flex-shrink:0;">
+      {% else %}
+        <div style="width:80px;height:80px;border-radius:var(--radius);background:linear-gradient(135deg,#4a9eff,#1a73e8);display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;font-size:1.5rem;color:white;flex-shrink:0;">
+          {{ ski_center.business_profile.business_name|first }}
+        </div>
+      {% endif %}
+      <div style="flex:1">
+        <div class="profile-name">{{ ski_center.business_profile.business_name }}</div>
+        <div class="profile-meta">
+          Ski centar · {{ ski_center.business_profile.location }} · {{ ski_center.contact_email }}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;margin-bottom:12px;">
+          <span class="tag">{{ slopes_count }}km staza</span>
+          <span class="tag">{{ lifts_count }} žičara</span>
+          <span class="tag">✓ Verifikovan</span>
+        </div>
+        <button class="btn-outline-sm" onclick="switchTab(document.querySelector('.tab-btn:nth-child(5)'), 'profil')">
+          Izmeni profil
+        </button>
+      </div>
+      <div class="grid-4" style="min-width:380px;">
+        <div class="stat-card">
+          <div><div class="stat-label">Instruktori</div><div class="stat-val">{{ instructors_count }}</div><div class="stat-sub">Aktivnih</div></div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label">Rental firme</div><div class="stat-val">{{ rentals_count }}</div><div class="stat-sub">Partneri</div></div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label">Rezervacije</div><div class="stat-val">{{ bookings_count }}</div><div class="stat-sub">Ove sezone</div></div>
+        </div>
+        <div class="stat-card">
+            <div><div class="stat-label">Ocena</div><div class="stat-val">{{ avg_rating|floatformat:1|default:"N/A" }}</div><div class="stat-sub">recenzija</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SADRŽAJ -->
+  <div class="content-wrap">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab(this,'pregled')">Pregled</button>
+      <button class="tab-btn" onclick="switchTab(this,'staze')">Staze i žičare</button>
+      <button class="tab-btn" onclick="switchTab(this,'instruktori')">Instruktori</button>
+      <button class="tab-btn" onclick="switchTab(this,'rental')">Rental firme</button>
+      <button class="tab-btn" onclick="switchTab(this,'profil')">Podaci centra</button>
+    </div>
+
+    <!-- TAB: PREGLED -->
+    <div id="tab-pregled">
+      <div class="grid-2" style="margin-bottom:20px;">
+        <div class="card-box" style="margin:0">
+          <div class="section-title">Status staza danas</div>
+          {% for slope in slopes %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.88rem;">
+            <span>{{ slope.name }} ({{ slope.get_difficulty_display }})</span>
+            {% if slope.status == 'otvorena' %}
+              <span class="badge badge-confirmed">Otvorena</span>
+            {% else %}
+              <span class="badge badge-pending">Zatvorena</span>
+            {% endif %}
+          </div>
+          {% empty %}
+          <p style="color:var(--text-muted);font-size:0.88rem;">Nema unetih staza.</p>
+          {% endfor %}
+        </div>
+        <div class="card-box" style="margin:0">
+          <div class="section-title">Informacije</div>
+          <div style="font-size:0.9rem;line-height:2;color:var(--text-muted);">
+            Lokacija: <b style="color:var(--text);">{{ ski_center.business_profile.location }}</b><br>
+            Email: <b style="color:var(--text);">{{ ski_center.contact_email }}</b><br>
+            Telefon: <b style="color:var(--text);">{{ ski_center.contact_phone }}</b><br>
+            Web: <b style="color:var(--text);">{{ ski_center.website }}</b>
+          </div>
+        </div>
+      </div>
+        <div class="card-box" style="margin-top:20px;">
+          <div class="section-title">Ocene korisnika · <span class="stars">★ {{ avg_rating|floatformat:1|default:"N/A" }}</span></div>
+          {% for review in reviews %}
+          <div style="padding:12px 0;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <span style="font-weight:600;font-size:0.9rem;">{{ review.reviewer.user.get_full_name }}</span>
+              <span style="color:var(--gold);font-size:0.8rem;">{% for i in review.stars_range %}★{% endfor %}</span>
+              <span style="font-size:0.78rem;color:var(--text-muted);margin-left:auto;">{{ review.created_at|date:"d. M Y." }}</span>
+            </div>
+            <p style="font-size:0.86rem;color:var(--text-muted);">{{ review.comment }}</p>
+          </div>
+          {% empty %}
+          <p style="color:var(--text-muted);font-size:0.88rem;">Još nema ocena.</p>
+          {% endfor %}
+        </div>
+    </div>
+
+    <!-- TAB: STAZE I ŽIČARE -->
+    <div id="tab-staze" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="section-title" style="margin:0">Staze</div>
+        <button class="btn-primary" onclick="openModal('modal-slope')">+ Dodaj stazu</button>
+      </div>
+      {% for slope in slopes %}
+      <div class="card-box" style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.95rem;">{{ slope.name }}</div>
+          <div style="font-size:0.82rem;color:var(--text-muted);">
+            {{ slope.get_difficulty_display }} · {{ slope.length_km }} km
+          </div>
+        </div>
+        <form method="POST" action="{% url 'change_slope_status' slope.pk %}">
+          {% csrf_token %}
+          {% if slope.status == 'otvorena' %}
+            <span class="badge badge-confirmed">Otvorena</span>
+            <button type="submit" class="btn-outline-sm" style="margin-left:8px;">Zatvori</button>
+          {% else %}
+            <span class="badge badge-pending">Zatvorena</span>
+            <button type="submit" class="btn-outline-sm" style="margin-left:8px;">Otvori</button>
+          {% endif %}
+        </form>
+        <form method="POST" action="{% url 'delete_slope' slope.pk %}"
+              onsubmit="return confirm('Da li ste sigurni da želite da uklonite ovaj unos?')">
+          {% csrf_token %}
+          <button type="submit" class="btn-outline-sm" style="color:var(--red);border-color:var(--red);">Obriši</button>
+        </form>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Nema unetih staza.</p>
+      {% endfor %}
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 16px;">
+        <div class="section-title" style="margin:0">Žičare</div>
+        <button class="btn-primary" onclick="openModal('modal-lift')">+ Dodaj žičaru</button>
+      </div>
+      {% for lift in lifts %}
+      <div class="card-box" style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.95rem;">{{ lift.name }}</div>
+        </div>
+        <form method="POST" action="{% url 'change_lift_status' lift.pk %}">
+          {% csrf_token %}
+          {% if lift.status == 'aktivna' %}
+            <span class="badge badge-confirmed">Aktivna</span>
+            <button type="submit" class="btn-outline-sm" style="margin-left:8px;">Deaktiviraj</button>
+          {% else %}
+            <span class="badge badge-pending">Neaktivna</span>
+            <button type="submit" class="btn-outline-sm" style="margin-left:8px;">Aktiviraj</button>
+          {% endif %}
+        </form>
+        <form method="POST" action="{% url 'delete_lift' lift.pk %}"
+              onsubmit="return confirm('Da li ste sigurni da želite da uklonite ovaj unos?')">
+          {% csrf_token %}
+          <button type="submit" class="btn-outline-sm" style="color:var(--red);border-color:var(--red);">Obriši</button>
+        </form>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Nema unetih žičara.</p>
+      {% endfor %}
+    </div>
+
+    <!-- TAB: INSTRUKTORI -->
+    <div id="tab-instruktori" style="display:none">
+      <div class="section-title">Instruktori u centru</div>
+      {% for instructor in instructors %}
+      <div class="card-box" style="display:flex;align-items:center;gap:16px;margin-bottom:10px;">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.95rem;">
+            {{ instructor.business_profile.user.first_name }} {{ instructor.business_profile.user.last_name }}
+          </div>
+          <div style="font-size:0.82rem;color:var(--text-muted);">
+            <span class="stars">★</span> {{ instructor.price_per_hour }} RSD/čas
+          </div>
+        </div>
+        <span class="badge badge-confirmed">Aktivan</span>
+        <button class="btn-outline-sm">Profil</button>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);">Nema instruktora u ovom centru.</p>
+      {% endfor %}
+    </div>
+
+    <!-- TAB: RENTAL -->
+    <div id="tab-rental" style="display:none">
+      <div class="section-title">Rental firme u centru</div>
+      <p style="color:var(--text-muted);">Nema rental firmi u ovom centru.</p>
+    </div>
+
+    <!-- TAB: PODACI CENTRA -->
+    <div id="tab-profil" style="display:none">
+      <div class="section-title">Podaci ski centra</div>
+      <div class="card-box">
+        <form method="POST" action="{% url 'update_ski_center' ski_center.pk %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label class="form-label">Naziv ski centra</label>
+              <input class="form-input" name="business_name" value="{{ ski_center.business_profile.business_name }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" name="contact_email" value="{{ ski_center.contact_email }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lokacija</label>
+              <input class="form-input" name="location" value="{{ ski_center.business_profile.location }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Telefon</label>
+              <input class="form-input" name="contact_phone" value="{{ ski_center.contact_phone }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Website</label>
+              <input class="form-input" name="website" value="{{ ski_center.website }}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Opis</label>
+            <textarea class="form-input" name="description" rows="4">{{ ski_center.description }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fotografija ski centra</label>
+            {% if ski_center.photo %}
+              <img src="{{ ski_center.photo.url }}" style="width:80px;height:80px;border-radius:var(--radius);object-fit:cover;margin-bottom:8px;display:block;">
+            {% endif %}
+            <input type="file" name="photo" accept="image/*" class="form-input">
+          </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Lokacija na mapi (klikni ili prevuci pin)</label>
+              <div id="ski-map" style="height:300px;border-radius:10px;overflow:hidden;border:1px solid var(--border);"></div>
+              <input type="hidden" name="latitude" id="id_latitude" value="{{ ski_center.latitude|default_if_none:'' }}">
+              <input type="hidden" name="longitude" id="id_longitude" value="{{ ski_center.longitude|default_if_none:'' }}">
+              <small style="color:var(--text-muted);">Ako ne pomeriš pin, koordinate se automatski određuju iz unete lokacije.</small>
+            </div>
+          <button type="submit" class="btn-primary">Sačuvaj izmene</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: DODAJ STAZU -->
+<div id="modal-slope" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:480px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Dodaj stazu</h3>
+    <form method="POST" action="{% url 'add_slope' ski_center.pk %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Naziv staze</label>
+        <input class="form-input" name="name" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dužina (km)</label>
+        <input class="form-input" type="number" step="0.01" name="length_km">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Težina</label>
+        <select class="form-select" name="difficulty" required>
+          <option value="plava">Plava (početna)</option>
+          <option value="crvena">Crvena (srednja)</option>
+          <option value="crna">Crna (teška)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status">
+          <option value="otvorena">Otvorena</option>
+          <option value="zatvorena">Zatvorena</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button type="submit" class="btn-primary">Dodaj</button>
+        <button type="button" class="btn-outline-sm" onclick="closeModal('modal-slope')">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: DODAJ ŽIČARU -->
+<div id="modal-lift" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:14px;padding:32px;width:480px;max-width:90%;">
+    <h3 style="font-family:'Sora',sans-serif;font-weight:700;margin-bottom:20px;">Dodaj žičaru</h3>
+    <form method="POST" action="{% url 'add_lift' ski_center.pk %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Naziv žičare</label>
+        <input class="form-input" name="name" required>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button type="submit" class="btn-primary">Dodaj</button>
+        <button type="button" class="btn-outline-sm" onclick="closeModal('modal-lift')">Otkaži</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+  var t = document.getElementById('tab-' + tabId);
+  if (t) t.style.display = 'block';
+  if (tabId === 'profil' && window.skiMap) {
+    setTimeout(function(){ window.skiMap.invalidateSize(); }, 50);
+  }
+}
+function openModal(id) {
+  document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var latEl = document.getElementById('id_latitude');
+  var lngEl = document.getElementById('id_longitude');
+  var startLat = parseFloat(latEl.value) || 43.5;
+  var startLng = parseFloat(lngEl.value) || 20.9;
+  var map = L.map('ski-map').setView([startLat, startLng], latEl.value ? 13 : 7);
+  window.skiMap = map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  var marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
+  function setCoords(ll){ latEl.value = ll.lat.toFixed(6); lngEl.value = ll.lng.toFixed(6); }
+  marker.on('dragend', function(){ setCoords(marker.getLatLng()); });
+  map.on('click', function(e){ marker.setLatLng(e.latlng); setCoords(e.latlng); });
+  setTimeout(function(){ map.invalidateSize(); }, 200);
+});
+</script>
+{% endblock %}

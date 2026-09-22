@@ -1,0 +1,165 @@
+{
+  "id": "a1b2c3d4-0001-4000-8000-000000000001",
+  "version": "2.0",
+  "name": "SSU_01 Registracija",
+  "url": "http://127.0.0.1:8000",
+  "tests": [
+    {
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Legalno - uspesna registracija klijenta",
+      "commands": [
+        {
+          "id": "c01",
+          "comment": "",
+          "command": "open",
+          "target": "/register/",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c02",
+          "comment": "ime",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='first_name']\");el.value='IDE';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c03",
+          "comment": "prezime",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='last_name']\");el.value='Klijent';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c04",
+          "comment": "email (promeni pre svakog novog pokretanja)",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='email']\");el.value='ide_klijent1@test.rs';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c05",
+          "comment": "lozinka",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='password']\");el.value='lozinka123';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c06",
+          "comment": "potvrda lozinke",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='confirm_password']\");el.value='lozinka123';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c07",
+          "comment": "submit",
+          "command": "click",
+          "target": "css=button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "c08",
+          "comment": "posle uspeha redirect na home -> polje confirm_password vise ne postoji",
+          "command": "assertElementNotPresent",
+          "target": "name=confirm_password",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    },
+    {
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Nelegalno - kratka lozinka",
+      "commands": [
+        {
+          "id": "d01",
+          "comment": "",
+          "command": "open",
+          "target": "/register/",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d02",
+          "comment": "ime",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='first_name']\");el.value='IDE';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d03",
+          "comment": "prezime",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='last_name']\");el.value='Kratka';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d04",
+          "comment": "email",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='email']\");el.value='ide_kratka1@test.rs';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d05",
+          "comment": "lozinka < 8",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='password']\");el.value='123';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d06",
+          "comment": "potvrda",
+          "command": "executeScript",
+          "target": "var el=document.querySelector(\"[name='confirm_password']\");el.value='123';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d07",
+          "comment": "submit",
+          "command": "click",
+          "target": "css=button[type='submit']",
+          "targets": [],
+          "value": ""
+        },
+        {
+          "id": "d08",
+          "comment": "forma pala -> ostaje na registraciji, confirm_password i dalje postoji",
+          "command": "assertElementPresent",
+          "target": "name=confirm_password",
+          "targets": [],
+          "value": ""
+        }
+      ]
+    }
+  ],
+  "suites": [
+    {
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "SSU_01 Suite",
+      "persistSession": false,
+      "parallel": false,
+      "timeout": 300,
+      "tests": [
+        "a1b2c3d4-0002-4000-8000-000000000002",
+        "a1b2c3d4-0003-4000-8000-000000000003"
+      ]
+    }
+  ],
+  "urls": [
+    "http://127.0.0.1:8000"
+  ],
+  "plugins": []
+}
